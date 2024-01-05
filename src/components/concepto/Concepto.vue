@@ -12,39 +12,40 @@
           <v-row no-gutters>
             <v-col cols="3" class="pa-1">
               <v-text-field variant="outlined" density="compact" label="Clave de Producto o Servicio"
-                v-model="idClaveProdServ" @keyup.enter="getClaveProdServ"></v-text-field>
+                v-model="conceptoClass.idClaveProdServ" @keyup.enter="getClaveProdServ"></v-text-field>
             </v-col>
             <v-col cols="3" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Producto o Servicio" v-model="claveProdServDesc"
-                readonly></v-text-field>
+              <v-autocomplete variant="outlined" density="compact" label="Producto o Servicio" v-model="conceptoClass.claveProdServDesc"
+                :items="desserts" item-title="descripcion"></v-autocomplete>
             </v-col>
             <v-col cols="3" class="pa-1">
               <v-text-field variant="outlined" density="compact" label="Clave Unidad" @keyup.enter="getClaveUnidad"
-                v-model="idClaveUnidad"></v-text-field>
+                v-model="conceptoClass.idClaveUnidad"></v-text-field>
             </v-col>
             <v-col cols="3" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Unidad" v-model="unidad" readonly></v-text-field>
+              <v-autocomplete variant="outlined" density="compact" label="Unidad" v-model="conceptoClass.unidad"
+              :items="desserts2"></v-autocomplete>
             </v-col>
             <v-col cols="4" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Objeto Impuesto" :items="itemsObjetoImp"
-                :item-title="titleAutoComplete" item-value="codigo" v-model="idObjetoImp"></v-autocomplete>
+                :item-title="titleAutoComplete" item-value="codigo" v-model="conceptoClass.idObjetoImp"></v-autocomplete>
             </v-col>
             <v-col cols="2" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Cantidad" v-model="cantidad"></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="Cantidad" v-model="conceptoClass.cantidad"></v-text-field>
             </v-col>
             <v-col cols="2" class="pa-1">
               <v-text-field variant="outlined" density="compact" label="Valor Unitario"
-                v-model="valorUnitario"></v-text-field>
+                v-model="conceptoClass.valorUnitario"></v-text-field>
             </v-col>
             <v-col cols="2" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Importe" v-model="importe"></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="Importe" v-model="conceptoClass.importe"></v-text-field>
             </v-col>
             <v-col cols="2" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Descuento" v-model="descuento"></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="Descuento" v-model="conceptoClass.descuento"></v-text-field>
             </v-col>
             <v-col cols="12" class="pa-1">
               <v-textarea variant="outlined" label="Descripcion" rows="3" counter no-resize
-                v-model="descripcion"></v-textarea>
+                v-model="conceptoClass.descripcion"></v-textarea>
             </v-col>
             <v-col cols="12 mb-6">
               <v-btn variant="tonal" block color="primary" @click="agregarConcepto">
@@ -69,14 +70,16 @@ import { storeApp } from "@/store/app";
 import axios from "axios";
 
 const appStore = storeApp();
-const conceptoClass = appStore.concepto;
 const itemsObjetoImp: any = ref([]);
 
+let desserts: any = ref([]);
+let desserts2: any = ref([]);
+let conceptoClass: any = ref(appStore.concepto);
 let showConcepto: any = ref(true);
 let arrayConceptos: any = ref([]);
 let editedIndex: any = ref(-1);
 
-const emit = defineEmits(["closeConcepto", "closeEditarConcepto"]);
+const emit = defineEmits(["setDatosConcepto", "closeEditarConcepto"]);
 
 let idClaveProdServ: any = ref();
 let claveProdServDesc: any = ref();
@@ -94,9 +97,13 @@ onMounted(() => {
 })
 
 function getClaveProdServ() {
-  axios.get(appStore.link + "/ClaveProdServ/byCod/" + idClaveProdServ.value)
+  axios.get(appStore.link + "/ClaveProdServ/byCod/" + conceptoClass.value.idClaveProdServ)
     .then((response) => {
-      claveProdServDesc.value = response.data[0].descripcion;
+      if(response.data.length > 1){
+        desserts.value = response.data;
+      }else{
+        conceptoClass.value.claveProdServDesc = response.data[0].descripcion;
+      }
     })
     .catch((e) => {
       console.log("Fatal " + e)
@@ -104,10 +111,13 @@ function getClaveProdServ() {
 }
 
 function getClaveUnidad() {
-  axios.get(appStore.link + "/ClaveUnidad/byId/" + idClaveUnidad.value)
+  axios.get(appStore.link + "/ClaveUnidad/byId/" + conceptoClass.idClaveUnidad)
     .then((response) => {
-      console.log(response.data)
-      unidad.value = response.data[0].descripcion;
+      if(response.data.length > 1){
+        desserts2.value = response.data;
+      }else{
+        conceptoClass.unidad = response.data[0].descripcion;
+      }
     })
     .catch((e) => {
       console.log("Fatal " + e)
@@ -126,7 +136,7 @@ function getObjetoImp() {
 
 function agregarConcepto() {
   if (editedIndex.value > -1) {
-    Object.assign(arrayConceptos.value[editedIndex.value], {
+    Object.assign(arrayConceptos.value[editedIndex.value], /* {
       idClaveProdServ: idClaveProdServ.value,
       claveProdServDesc: claveProdServDesc.value,
       idClaveUnidad: idClaveUnidad.value,
@@ -137,12 +147,12 @@ function agregarConcepto() {
       importe: importe.value,
       descuento: descuento.value,
       descripcion: descripcion.value,
-    });
+    } */ conceptoClass.value);
     emit("closeEditarConcepto");
     editedIndex.value = -1;
   } else {
-    arrayConceptos.value.push({
-      idClaveProdServ: idClaveProdServ.value,
+    arrayConceptos.value.push(conceptoClass.value
+      /* idClaveProdServ: idClaveProdServ.value,
       claveProdServDesc: claveProdServDesc.value,
       idClaveUnidad: idClaveUnidad.value,
       unidad: unidad.value,
@@ -151,14 +161,14 @@ function agregarConcepto() {
       valorUnitario: valorUnitario.value,
       importe: importe.value,
       descuento: descuento.value,
-      descripcion: descripcion.value, 
-    });
-    emit("closeConcepto", arrayConceptos.value);
+      descripcion: descripcion.value, */ 
+    );
+    emit("setDatosConcepto", arrayConceptos.value);
   }
 }
 
 function cargarDatos(item: any) {
-  idClaveProdServ.value = item.idClaveProdServ;
+  /* idClaveProdServ.value = item.idClaveProdServ;
   claveProdServDesc.value = item.claveProdServDesc;
   idClaveUnidad.value = item.idClaveUnidad;
   unidad.value = item.unidad;
@@ -167,11 +177,11 @@ function cargarDatos(item: any) {
   valorUnitario.value = item.valorUnitario;
   importe.value = item.importe;
   descuento.value = item.descuento;
-  descripcion.value = item.descripcion;
-
+  descripcion.value = item.descripcion; */
   editedIndex.value = arrayConceptos.value.indexOf(item);
-
+  conceptoClass.value = Object.assign({}, item);
 }
+
 
 function titleAutoComplete(item: any) {
   return item.codigo + " - " + item.descripcion;

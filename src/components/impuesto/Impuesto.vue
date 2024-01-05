@@ -1,5 +1,4 @@
 <template>
-  <v-container>
     <v-card>
       <v-card-title class="bg-primary"> Aplicar Impuesto </v-card-title>
       <v-card-text class="mt-6">
@@ -7,22 +6,22 @@
           <v-row no-gutters>
             <v-col cols="6" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Impuesto" :items="itemsImpuesto"
-                :item-title="titleAutoComplete" item-value="codigo" v-model="impuestoClass.codImpuesto"></v-autocomplete>
+                :item-title="titleAutoComplete" item-value="codigo" v-model="codImpuesto"></v-autocomplete>
             </v-col>
             <v-col cols="6" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Tipo Factor" :items="itemsTipoFactor"
-                item-title="codigo" item-value="codigo" v-model="impuestoClass.codTipoFactor"></v-autocomplete>
+                item-title="codigo" item-value="codigo" v-model="codTipoFactor"></v-autocomplete>
             </v-col>
             <v-col cols="4" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Tasa o Cuota" :items="itemsTasaCuota"
-                item-title="descripcion" item-value="descripcion" v-model="impuestoClass.codTasaCuota"></v-autocomplete>
+                item-title="descripcion" item-value="descripcion" v-model="codTasaCuota"></v-autocomplete>
             </v-col>
             <v-col cols="4" class="pa-1">
               <v-text-field ariant="outlined" density="compact" label="Importe"
-                v-model="impuestoClass.importe"></v-text-field>
+                v-model="importe"></v-text-field>
             </v-col>
             <v-col cols="4" class="pa-1">
-              <v-text-field ariant="outlined" density="compact" label="Base" v-model="impuestoClass.base"></v-text-field>
+              <v-text-field ariant="outlined" density="compact" label="Base" v-model="base"></v-text-field>
             </v-col>
           </v-row>
         </v-form>
@@ -33,7 +32,6 @@
         <v-btn variant="tonal" color="success" @click="agregarImpuesto">Agregar</v-btn>
       </v-card-actions>
     </v-card>
-  </v-container>
 </template>
 
 <script lang="ts" setup>
@@ -57,6 +55,13 @@ onMounted(() => {
   getTipoFactor();
   getTasaCuota();
 })
+
+let codImpuesto: any = ref();
+let codTipoFactor: any = ref();
+let codTasaCuota: any = ref();
+let importe: any = ref();
+let base: any = ref();
+
 
 function getImpuesto() {
   axios.get(appStore.link + "/Impuesto/get")
@@ -98,35 +103,35 @@ function objetoImpuesto() {
   if (editedIndex.value > -1) {
     console.log(editedIndex.value);
     Object.assign(arrayImpuestos.value[editedIndex.value], {
-      codImpuesto: impuestoClass.codImpuesto,
-      codTipoFactor: impuestoClass.codTipoFactor,
-      codTasaCuota: impuestoClass.codTasaCuota,
-      base: impuestoClass.base,
-      importe: impuestoClass.importe
+      codImpuesto: codImpuesto.value,
+      codTipoFactor: codTipoFactor.value,
+      codTasaCuota: codTasaCuota.value,
+      base: base.value,
+      importe: importe.value
     })
     emit("closeImpuesto")
     editedIndex.value = -1;
   } else {
     arrayImpuestos.value.push({
-      codImpuesto: impuestoClass.codImpuesto,
-      codTipoFactor: impuestoClass.codTipoFactor,
-      codTasaCuota: impuestoClass.codTasaCuota,
-      base: impuestoClass.base,
-      importe: impuestoClass.importe
+      codImpuesto: codImpuesto.value,
+      codTipoFactor: codTipoFactor.value,
+      codTasaCuota: codTasaCuota.value,
+      base: base.value,
+      importe: importe.value
     });
 
     return arrayImpuestos.value;
   }
 }
 
-function cargarDatos(item: any) {
-  editedIndex.value = arrayImpuestos.value.indexOf(item)
-  console.log("ajsdkajbsd")
-  impuestoClass.codImpuesto = item.codImpuesto;
-  impuestoClass.codTipoFactor = item.codTipoFactor;
-  impuestoClass.codTasaCuota = item.codTasaCuota;
-  impuestoClass.base = item.base;
-  impuestoClass.importe = item.importe;
+function cargarDatosImpuesto(item: any) {
+  codImpuesto.value = item.codImpuesto;
+  codTipoFactor = item.codTipoFactor;
+  codTasaCuota = item.codTasaCuota;
+  importe = item.base;
+  base = item.importe;
+  editedIndex.value = arrayImpuestos.value.indexOf(item);
+  console.log("Entro");
 }
 
 function cerrarImpuesto() {
@@ -138,6 +143,6 @@ function titleAutoComplete(item: any) {
 }
 
 defineExpose({
-  cargarDatos,
+  cargarDatosImpuesto,
 })
 </script>
