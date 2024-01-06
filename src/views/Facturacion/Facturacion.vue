@@ -12,7 +12,7 @@
       <v-col cols="12">
         <v-expand-transition>
           <div v-show="showConcepto">
-            <Concepto ref="concepto" @setDatosConcepto="getDatosConceptos" @closeEditarConcepto="closeEditarConcepto" />
+            <Concepto ref="concepto" @setDatosConcepto="getDatosConceptos" @closeConcepto="cerrarConcepto" />
           </div>
         </v-expand-transition>
       </v-col>
@@ -112,11 +112,8 @@
       </v-col>
     </v-row>
   </v-container>
-  <v-dialog v-model="dialogImpuesto" width="700">
-    <div>
-      <Impuesto ref="impuesto" @closeImpuesto="cerrarImpuesto" @closeEditarImpuesto="cerrarImpuestoEditar"
-        @datosImpuesto="datosImpuesto" />
-    </div>
+  <v-dialog v-model="dialogImpuesto" width="700">      
+    <Impuesto ref="impuesto" @closeImpuesto="cerrarImpuesto" @setDatosImpuesto="getDatosImpuestos" />
   </v-dialog>
   <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
     {{ msg }}
@@ -162,7 +159,7 @@ let dialog: any = ref(false);
 let arrayConceptos: any = ref([]);
 let arrayImpuestos: any = ref([]);
 
-let editedIndex: any = ref(-1);
+let conceptoIndex: any = ref(-1);
 
 const snack: any = ref(false);
 let snackColor = "";
@@ -170,14 +167,10 @@ let msg: String = "";
 let timeMensaje: any = ref();
 
 async function generarFactura() {
-  dialog.value = true;
+  // dialog.value = true;
   getDatosCliente();
   getDatosComprobante();
-
-  console.log(datosFactura.value)
-
-  // comprobante2.value.datosReceptor = clienteClass;
-  // comprobante2.value.datosComprobante = comprobanteClass;
+  datosFactura.value.datosConcepto = arrayConceptos.value;
   /* axios
     .post(appStore.link + "/Facturacion/crearXml", datosFactura.value)
     .then((response) => {
@@ -193,14 +186,9 @@ async function generarFactura() {
     .catch((e) => {
       console.log("Fatal" + e);
     }); */
-} 
-
-async function datosImpuesto(data: any) {
-  arrayImpuestos.value = data;
-  arrayConceptos.value[editedIndex.value].datosImpuesto = data;
 }
 
-async function getDatosCliente(){
+function getDatosCliente(){
   datosFactura.value.datosReceptor = cliente.value?.setDatosCliente();
 }
 
@@ -213,13 +201,15 @@ function getDatosConceptos(item:any){
   cerrarConcepto();
 }
 
+function getDatosImpuestos(item: any){
+  arrayImpuestos.value = item;
+  arrayConceptos.value[conceptoIndex.value].datosImpuesto = item;
+  cerrarImpuesto();
+}
+
 function abrirConcepto(){
   showConcepto.value = true;
   cliente.value?.ocultar();
-}
-
-function abrirImpuesto(item: any){
-  dialogImpuesto.value = true;
 }
 
 function editarConcepto(item: any){
@@ -227,32 +217,29 @@ function editarConcepto(item: any){
   concepto.value?.cargarDatos(item);
 }
 
-function editarImpuesto(item: any){
-
-}
-
 function eliminarConcepto(item: any){
-
-}
-
-function eliminarImpuesto(item: any){
-
+  arrayConceptos.value.splice(item, 1);
 }
 
 function cerrarConcepto(){
   showConcepto.value = false;
 }
 
-function closeEditarConcepto(){
-  console.log("Cerrar Editar cooncepto")
+function abrirImpuesto(item: any){
+  dialogImpuesto.value = true;
+  conceptoIndex.value = arrayConceptos.value.indexOf(item);
+}
+
+function editarImpuesto(item: any){
+  impuesto.value?.cargarDatos(item);
+}
+
+function eliminarImpuesto(item: any){
+  arrayConceptos.value[conceptoIndex.value].datosImpuesto.splice(item.value);
 }
 
 function cerrarImpuesto(){
-
-}
-
-function cerrarImpuestoEditar(){
-
+  dialogImpuesto.value = false;
 }
 
 function mostrarSnack(color: any, msgSnack: any, time: any) {

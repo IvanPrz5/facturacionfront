@@ -71,38 +71,27 @@ import axios from "axios";
 
 const appStore = storeApp();
 const itemsObjetoImp: any = ref([]);
+const conceptoClass = appStore.concepto;
 
 let desserts: any = ref([]);
 let desserts2: any = ref([]);
-let conceptoClass: any = ref(appStore.concepto);
 let showConcepto: any = ref(true);
 let arrayConceptos: any = ref([]);
 let editedIndex: any = ref(-1);
 
-const emit = defineEmits(["setDatosConcepto", "closeEditarConcepto"]);
-
-let idClaveProdServ: any = ref();
-let claveProdServDesc: any = ref();
-let idClaveUnidad: any = ref();
-let unidad: any = ref();
-let cantidad: any = ref();
-let idObjetoImp: any = ref();
-let valorUnitario: any = ref();
-let importe: any = ref();
-let descuento: any = ref();
-let descripcion: any = ref();
+const emit = defineEmits(["setDatosConcepto", "closeConcepto"]);
 
 onMounted(() => {
   getObjetoImp();
 })
 
 function getClaveProdServ() {
-  axios.get(appStore.link + "/ClaveProdServ/byCod/" + conceptoClass.value.idClaveProdServ)
+  axios.get(appStore.link + "/ClaveProdServ/byCod/" + conceptoClass.idClaveProdServ)
     .then((response) => {
       if(response.data.length > 1){
         desserts.value = response.data;
       }else{
-        conceptoClass.value.claveProdServDesc = response.data[0].descripcion;
+        conceptoClass.claveProdServDesc = response.data[0].descripcion;
       }
     })
     .catch((e) => {
@@ -135,51 +124,45 @@ function getObjetoImp() {
 }
 
 function agregarConcepto() {
+  let obj = objetoConcepto();
   if (editedIndex.value > -1) {
-    Object.assign(arrayConceptos.value[editedIndex.value], /* {
-      idClaveProdServ: idClaveProdServ.value,
-      claveProdServDesc: claveProdServDesc.value,
-      idClaveUnidad: idClaveUnidad.value,
-      unidad: unidad.value,
-      cantidad: cantidad.value,
-      idObjetoImp: idObjetoImp.value,
-      valorUnitario: valorUnitario.value,
-      importe: importe.value,
-      descuento: descuento.value,
-      descripcion: descripcion.value,
-    } */ conceptoClass.value);
-    emit("closeEditarConcepto");
+    Object.assign(arrayConceptos.value[editedIndex.value], obj);
+    emit("closeConcepto");
     editedIndex.value = -1;
   } else {
-    arrayConceptos.value.push(conceptoClass.value
-      /* idClaveProdServ: idClaveProdServ.value,
-      claveProdServDesc: claveProdServDesc.value,
-      idClaveUnidad: idClaveUnidad.value,
-      unidad: unidad.value,
-      cantidad: cantidad.value,
-      idObjetoImp: idObjetoImp.value,
-      valorUnitario: valorUnitario.value,
-      importe: importe.value,
-      descuento: descuento.value,
-      descripcion: descripcion.value, */ 
-    );
+    arrayConceptos.value.push(obj);
     emit("setDatosConcepto", arrayConceptos.value);
   }
 }
 
 function cargarDatos(item: any) {
-  /* idClaveProdServ.value = item.idClaveProdServ;
-  claveProdServDesc.value = item.claveProdServDesc;
-  idClaveUnidad.value = item.idClaveUnidad;
-  unidad.value = item.unidad;
-  idObjetoImp.value = item.idObjetoImp;
-  cantidad.value = item.cantidad;
-  valorUnitario.value = item.valorUnitario;
-  importe.value = item.importe;
-  descuento.value = item.descuento;
-  descripcion.value = item.descripcion; */
+  conceptoClass.idClaveProdServ = item.idClaveProdServ;
+  conceptoClass.claveProdServDesc = item.claveProdServDesc;
+  conceptoClass.idClaveUnidad = item.idClaveUnidad;
+  conceptoClass.unidad = item.unidad;
+  conceptoClass.idObjetoImp = item.idObjetoImp;
+  conceptoClass.cantidad = item.cantidad;
+  conceptoClass.valorUnitario = item.valorUnitario;
+  conceptoClass.importe = item.importe;
+  conceptoClass.descuento = item.descuento;
+  conceptoClass.descripcion = item.descripcion;
   editedIndex.value = arrayConceptos.value.indexOf(item);
-  conceptoClass.value = Object.assign({}, item);
+}
+
+function objetoConcepto(){
+  let obj = {
+    idClaveProdServ: conceptoClass.idClaveProdServ,
+    claveProdServDesc: conceptoClass.claveProdServDesc,
+    idClaveUnidad: conceptoClass.idClaveUnidad,
+    unidad: conceptoClass.unidad,
+    cantidad: conceptoClass.cantidad,
+    idObjetoImp: conceptoClass.idObjetoImp,
+    valorUnitario: conceptoClass.valorUnitario,
+    importe: conceptoClass.importe,
+    descuento: conceptoClass.descuento,
+    descripcion: conceptoClass.descripcion, 
+  }
+  return obj;
 }
 
 

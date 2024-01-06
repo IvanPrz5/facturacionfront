@@ -6,22 +6,22 @@
           <v-row no-gutters>
             <v-col cols="6" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Impuesto" :items="itemsImpuesto"
-                :item-title="titleAutoComplete" item-value="codigo" v-model="codImpuesto"></v-autocomplete>
+                :item-title="titleAutoComplete" item-value="codigo" v-model="impuestoClass.codImpuesto"></v-autocomplete>
             </v-col>
             <v-col cols="6" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Tipo Factor" :items="itemsTipoFactor"
-                item-title="codigo" item-value="codigo" v-model="codTipoFactor"></v-autocomplete>
+                item-title="codigo" item-value="codigo" v-model="impuestoClass.codTipoFactor"></v-autocomplete>
             </v-col>
             <v-col cols="4" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Tasa o Cuota" :items="itemsTasaCuota"
-                item-title="descripcion" item-value="descripcion" v-model="codTasaCuota"></v-autocomplete>
+                item-title="descripcion" item-value="descripcion" v-model="impuestoClass.codTasaCuota"></v-autocomplete>
             </v-col>
             <v-col cols="4" class="pa-1">
               <v-text-field ariant="outlined" density="compact" label="Importe"
-                v-model="importe"></v-text-field>
+                v-model="impuestoClass.importe"></v-text-field>
             </v-col>
             <v-col cols="4" class="pa-1">
-              <v-text-field ariant="outlined" density="compact" label="Base" v-model="base"></v-text-field>
+              <v-text-field ariant="outlined" density="compact" label="Base" v-model="impuestoClass.base"></v-text-field>
             </v-col>
           </v-row>
         </v-form>
@@ -48,20 +48,13 @@ const itemsTasaCuota: any = ref([]);
 let arrayImpuestos: any = ref([]);
 let editedIndex: any = ref(-1);
 
-const emit = defineEmits(["closeImpuesto", "closeEditarImpuesto", "datosImpuesto"]);
+const emit = defineEmits(["closeImpuesto", "setDatosImpuesto"]);
 
 onMounted(() => {
   getImpuesto();
   getTipoFactor();
   getTasaCuota();
 })
-
-let codImpuesto: any = ref();
-let codTipoFactor: any = ref();
-let codTasaCuota: any = ref();
-let importe: any = ref();
-let base: any = ref();
-
 
 function getImpuesto() {
   axios.get(appStore.link + "/Impuesto/get")
@@ -94,44 +87,38 @@ function getTasaCuota() {
 }
 
 function agregarImpuesto() {
-  let impuestoArr = objetoImpuesto();
-  emit("datosImpuesto", impuestoArr);
-  emit("closeImpuesto")
-}
-
-function objetoImpuesto() {
+  let obj =  objetoImpuesto();
   if (editedIndex.value > -1) {
-    console.log(editedIndex.value);
-    Object.assign(arrayImpuestos.value[editedIndex.value], {
-      codImpuesto: codImpuesto.value,
-      codTipoFactor: codTipoFactor.value,
-      codTasaCuota: codTasaCuota.value,
-      base: base.value,
-      importe: importe.value
-    })
+    Object.assign(arrayImpuestos.value[editedIndex.value], obj);
     emit("closeImpuesto")
     editedIndex.value = -1;
+    console.log("editar")
   } else {
-    arrayImpuestos.value.push({
-      codImpuesto: codImpuesto.value,
-      codTipoFactor: codTipoFactor.value,
-      codTasaCuota: codTasaCuota.value,
-      base: base.value,
-      importe: importe.value
-    });
-
-    return arrayImpuestos.value;
+    console.log("agregar")
+    arrayImpuestos.value.push(obj);
+    emit("setDatosImpuesto", arrayImpuestos.value)
   }
 }
 
-function cargarDatosImpuesto(item: any) {
-  codImpuesto.value = item.codImpuesto;
-  codTipoFactor = item.codTipoFactor;
-  codTasaCuota = item.codTasaCuota;
-  importe = item.base;
-  base = item.importe;
+function cargarDatos(item: any) {
+  impuestoClass.codImpuesto.value = item.codImpuesto;
+  impuestoClass.codTipoFactor = item.codTipoFactor;
+  impuestoClass.codTasaCuota = item.codTasaCuota;
+  impuestoClass.importe = item.base;
+  impuestoClass.base = item.importe;
   editedIndex.value = arrayImpuestos.value.indexOf(item);
-  console.log("Entro");
+}
+
+function objetoImpuesto(){
+  let obj = {
+    codImpuesto: impuestoClass.codImpuesto,
+    codTipoFactor: impuestoClass.codTipoFactor,
+    codTasaCuota: impuestoClass.codTasaCuota,
+    base: impuestoClass.base,
+    importe: impuestoClass.importe
+  }
+
+  return obj;
 }
 
 function cerrarImpuesto() {
@@ -143,6 +130,6 @@ function titleAutoComplete(item: any) {
 }
 
 defineExpose({
-  cargarDatosImpuesto,
+  cargarDatos,
 })
 </script>
