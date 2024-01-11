@@ -3,119 +3,152 @@
     <v-card-title class="d-flex">
       Cliente
       <v-spacer></v-spacer>
+      <v-text-field class="pa-0 ma-0" density="compact" variant="filled" label="Buscar por Nombre o Rfc del cliente"
+        hide-details append-inner-icon="mdi-magnify" v-model="nombreRfc" @click:append-inner="buscarPorNombreOrRfc"
+        @keyup.enter="buscarPorNombreOrRfc"></v-text-field>
+      <v-divider class="mx-4" inset vertical></v-divider>
+      <v-btn @click="agregarCliente" color="success">
+        <v-icon size="x-large">mdi-plus</v-icon>
+        <v-tooltip activator="parent" location="end">Si tu cliente no aparece, crealo</v-tooltip>
+      </v-btn>
+      <v-divider class="mx-4" inset vertical></v-divider>
       <v-icon :icon="showCliente ? 'mdi-chevron-up' : 'mdi-chevron-down'" @click="showCliente = !showCliente"></v-icon>
     </v-card-title>
     <v-divider></v-divider>
     <v-expand-transition>
       <div class="mx-4 mt-4" v-show="showCliente">
-        <v-form>
+        <v-form ref="clienteForm" fast-fail @submit.prevent>
           <v-row no-gutters>
+            <!-- <v-col cols="12">
+              <v-text-field variant="outlined" density="compact" label="RFC o Nombre del Cliente" append-inner-icon="mdi-magnify"></v-text-field>
+            </v-col> -->
             <v-col cols="8" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Nombre"
-                v-model="clienteClass.nombre"></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="Nombre" v-model="clienteClass.nombre"
+                :rules="[rules.requerido]" readonly></v-text-field>
             </v-col>
             <v-col class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="RFC" v-model="clienteClass.rfc"></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="RFC" v-model="clienteClass.rfc"
+                :rules="[rules.requerido]" ></v-text-field>
             </v-col>
           </v-row>
           <v-row no-gutters>
-            <v-col class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Codigo Postal" append-inner-icon="mdi-magnify"
-                @click:append-inner="buscaCodigoPostal" @keyup.enter="buscaCodigoPostal"
-                v-model="clienteClass.idCodigoPostal">
+            <v-col cols="2" class="pa-1">
+              <v-text-field variant="outlined" density="compact" label="Codigo Postal"
+                v-model="clienteClass.domicilioFiscal" :rules="[rules.requerido]" readonly>
               </v-text-field>
-              <!-- <v-autocomplete variant="outlined" density="compact" label="Codigo Postal"></v-autocomplete> -->
             </v-col>
             <v-col class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Estado" v-model="nombreEstado"
-                readonly></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="Regimen Fiscal"
+                v-model="clienteClass.regimenFiscal" :rules="[rules.requerido]" readonly></v-text-field>
             </v-col>
             <v-col class="pa-1">
-              <v-autocomplete variant="outlined" density="compact" label="Regimen Fiscal" :items="itemsRegimenFiscal"
-                :item-title="titleAutoComplete" item-value="codigo"
-                v-model="clienteClass.codRegimenFiscal"></v-autocomplete>
-            </v-col>
-            <v-col class="pa-1">
-              <v-autocomplete variant="outlined" density="compact" label="Uso CFDI" :items="itemsUsoCfdi"
-                :item-title="titleAutoComplete" item-value="codigo" v-model="clienteClass.codUsoCfdi"></v-autocomplete>
+              <v-text-field variant="outlined" density="compact" label="Uso CFDI" v-model="clienteClass.usoCfdi"
+                :rules="[rules.requerido]" readonly></v-text-field>
             </v-col>
           </v-row>
         </v-form>
       </div>
     </v-expand-transition>
   </v-card>
+  <v-dialog v-model="dialogCliente" width="900">
+    <AñadirCliente @clienteAgregado="clienteAgregado" />
+  </v-dialog>
+  <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
+    {{ msg }}
+  </v-snackbar>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
+import AñadirCliente from "./AñadirCliente.vue";
+import Rules from "@/class/Rules";
 
 const appStore = storeApp();
+const rules = new Rules();
 const clienteClass = appStore.cliente;
-
-const itemsRegimenFiscal: any = ref([]);
-const itemsUsoCfdi: any = ref([]);
+const clienteForm: any = ref(null)
 
 let arrayCliente: any = ref([]);
 let showCliente: any = ref(true);
-let nombreEstado: any = ref();
+let dialogCliente: any = ref(false);
+let nombreRfc: any = ref() // MTV850101H72
 
-onMounted(() => {
-  getRegimenFiscal();
-  getUsoCfdi();
-});
+const snack: any = ref(false);
+let snackColor = "";
+let msg: String = "";
+let timeMensaje: any = ref();
 
-function getRegimenFiscal() {
-  axios
-    .get(appStore.link + "/RegimenFiscal/get")
+async function buscarPorNombreOrRfc() {
+  await axios
+    .get(appStore.link + "/Clientes/byNombreOrRfc/" + nombreRfc.value)
     .then((response) => {
-      itemsRegimenFiscal.value = response.data;
+      if (response.data == "") {
+        mostrarSnack("error", "El cliente no existe, revise sus datos", 5000);
+      } else {
+        clienteClass.nombre = response.data.nombre;
+        clienteClass.rfc = response.data.rfc;
+        clienteClass.domicilioFiscal = response.data.domicilioFiscal;
+        clienteClass.regimenFiscal = response.data.regimenFiscal;
+        clienteClass.usoCfdi = response.data.usoCfdi;
+        nombreRfc.value = null;
+      }
     })
     .catch((e) => {
       console.log("Fatal " + e);
     });
 }
 
-function getUsoCfdi() {
-  axios
-    .get(appStore.link + "/UsoCFDI/get")
-    .then((response) => {
-      itemsUsoCfdi.value = response.data;
-    })
-    .catch((e) => {
-      console.log("Fatal " + e);
-    });
+async function setDatosCliente() {
+  const { valid } = await clienteForm.value.validate();
+  if (valid) {
+    arrayCliente.value = objetoConcepto();
+    return arrayCliente.value;
+  } else {
+    return null;
+  }
 }
 
-function buscaCodigoPostal() {
-  // console.log(clienteClass.idCodPostal)
-  axios
-    .get(appStore.link + "/CodigoPostal/byId/" + clienteClass.idCodigoPostal)
-    .then((response) => {
-      nombreEstado.value = response.data[0].descripcion;
-    })
-    .catch((e) => {
-      console.log("Fatal" + e);
-    });
+function objetoConcepto() {
+  let reg = clienteClass.regimenFiscal.split(".");
+  let uso = clienteClass.usoCfdi.split(".");
+  // let unidad2 = codClaveUnidad[1].replace("- ", "");
+  let obj = {
+    nombre: clienteClass.nombre,
+    rfc: clienteClass.rfc,
+    domicilioFiscal: clienteClass.domicilioFiscal,
+    regimenFiscal: reg[0],
+    usoCfdi: uso[0],
+  };
+  return obj;
 }
 
-function setDatosCliente(){
-  arrayCliente.value = clienteClass;
-  return arrayCliente.value;
+function ocultar() {
+  showCliente.value = false;
 }
 
-function ocultar(){
-  showCliente.value = false
+function agregarCliente() {
+  dialogCliente.value = true;
 }
 
-function titleAutoComplete(item: any) {
-  return item.codigo + " - " + item.descripcion;
+async function clienteAgregado(item: any) {
+  dialogCliente.value = false;
+  mostrarSnack("success", "El cliente se agrego correctamente", 5000);
+  nombreRfc.value = item;
+  await buscarPorNombreOrRfc();
+  // Object.assign(clienteClass, item);
+}
+
+function mostrarSnack(color: any, msgSnack: any, time: any) {
+  snackColor = color;
+  msg = msgSnack;
+  time = timeMensaje;
+  snack.value = true;
 }
 
 defineExpose({
   ocultar,
-  setDatosCliente
-})
-
+  setDatosCliente,
+});
 </script>

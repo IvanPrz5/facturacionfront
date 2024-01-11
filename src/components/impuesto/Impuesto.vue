@@ -92,9 +92,7 @@ function agregarImpuesto() {
     Object.assign(arrayImpuestos.value[editedIndex.value], obj);
     emit("closeImpuesto")
     editedIndex.value = -1;
-    console.log("editar")
   } else {
-    console.log("agregar")
     arrayImpuestos.value.push(obj);
     emit("setDatosImpuesto", arrayImpuestos.value)
   }

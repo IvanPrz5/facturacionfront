@@ -10,6 +10,7 @@ import { Impuesto } from '@/class/Impuesto';
 export const storeApp = defineStore('app', () => {
   const token = ref("");
   const link = "http://localhost:8095/api/v1";
+
   const usuario: Usuario | null = new Usuario();
   const comprobante: Comprobante | null = new Comprobante();
   const cliente: Cliente | null = new Cliente();

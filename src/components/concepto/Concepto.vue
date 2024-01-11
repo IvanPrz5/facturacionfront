@@ -1,75 +1,98 @@
 <template>
-  <v-card variant="tonal">
-    <v-card-title class="d-flex">
+  <v-card>
+    <v-card-title class="d-flex bg-primary">
       Concepto
       <v-spacer></v-spacer>
-      <v-icon :icon="showConcepto ? 'mdi-chevron-up' : 'mdi-chevron-down'" @click="showConcepto = !showConcepto"></v-icon>
+      <v-divider class="mx-4" inset vertical></v-divider>
+      <v-btn color="success" @click="conceptosPrecargadosDialog = true">
+        <v-icon size="x-large">mdi-set-merge</v-icon>
+        <v-tooltip activator="parent" location="end">Aplicar concepto precargado</v-tooltip>
+      </v-btn>
+      <!-- <v-icon :icon="showConcepto ? 'mdi-chevron-up' : 'mdi-chevron-down'" @click="showConcepto = !showConcepto"></v-icon> -->
     </v-card-title>
     <v-divider></v-divider>
-    <v-expand-transition>
-      <div class="mx-4 mt-4" v-show="showConcepto">
-        <v-form>
-          <v-row no-gutters>
-            <v-col cols="3" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Clave de Producto o Servicio"
-                v-model="conceptoClass.idClaveProdServ" @keyup.enter="getClaveProdServ"></v-text-field>
-            </v-col>
-            <v-col cols="3" class="pa-1">
-              <v-autocomplete variant="outlined" density="compact" label="Producto o Servicio" v-model="conceptoClass.claveProdServDesc"
-                :items="desserts" item-title="descripcion"></v-autocomplete>
-            </v-col>
-            <v-col cols="3" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Clave Unidad" @keyup.enter="getClaveUnidad"
-                v-model="conceptoClass.idClaveUnidad"></v-text-field>
-            </v-col>
-            <v-col cols="3" class="pa-1">
-              <v-autocomplete variant="outlined" density="compact" label="Unidad" v-model="conceptoClass.unidad"
-              :items="desserts2"></v-autocomplete>
-            </v-col>
-            <v-col cols="4" class="pa-1">
-              <v-autocomplete variant="outlined" density="compact" label="Objeto Impuesto" :items="itemsObjetoImp"
-                :item-title="titleAutoComplete" item-value="codigo" v-model="conceptoClass.idObjetoImp"></v-autocomplete>
-            </v-col>
-            <v-col cols="2" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Cantidad" v-model="conceptoClass.cantidad"></v-text-field>
-            </v-col>
-            <v-col cols="2" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Valor Unitario"
-                v-model="conceptoClass.valorUnitario"></v-text-field>
-            </v-col>
-            <v-col cols="2" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Importe" v-model="conceptoClass.importe"></v-text-field>
-            </v-col>
-            <v-col cols="2" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Descuento" v-model="conceptoClass.descuento"></v-text-field>
-            </v-col>
-            <v-col cols="12" class="pa-1">
-              <v-textarea variant="outlined" label="Descripcion" rows="3" counter no-resize
-                v-model="conceptoClass.descripcion"></v-textarea>
-            </v-col>
-            <v-col cols="12 mb-6">
-              <v-btn variant="tonal" block color="primary" @click="agregarConcepto">
-                Agregar
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-form>
-      </div>
-    </v-expand-transition>
-    <!-- <v-card-actions>
-      <v-btn variant="tonal" block color="primary" @click="agregarConcepto">
-        Agregar
-      </v-btn>
-    </v-card-actions> -->
+    <!-- <v-expand-transition> -->
+    <v-card-text v-show="showConcepto">
+      <v-form ref="conceptoForm" fast-fail @submit.prevent>
+        <v-row no-gutters>
+          <v-col cols="4" class="pa-1">
+            <v-text-field variant="outlined" density="compact" label="Ingresa Clave de Producto o Servicio"
+              v-model="codClaveProdServ" @keyup.enter="getClaveProdServ"
+              append-inner-icon="mdi-magnify"></v-text-field>
+          </v-col>
+          <v-col cols="8" class="pa-1">
+            <v-text-field variant="outlined" density="compact" v-model="conceptoClass.idClaveProdServ"
+              label="Producto o Servicio" :rules="[rules.requerido]" readonly></v-text-field>
+          </v-col>
+          <v-col cols="4" class="pa-1">
+            <v-text-field variant="outlined" density="compact" label="Ingresa Clave Unidad" @keyup.enter="getClaveUnidad"
+              v-model="codClaveUnidad" append-inner-icon="mdi-magnify"></v-text-field>
+          </v-col>
+          <v-col cols="8" class="pa-1">
+            <v-text-field variant="outlined" density="compact" label="Clave Unidad" v-model="conceptoClass.idClaveUnidad"
+              :rules="[rules.requerido]" readonly></v-text-field>
+          </v-col>
+          <v-col cols="8" class="pa-1">
+            <v-autocomplete variant="outlined" density="compact" label="Objeto Impuesto" :items="itemsObjetoImp"
+              :item-title="titleAutoComplete" item-value="codigo" v-model="conceptoClass.idObjetoImp"
+              :rules="[rules.requerido]"></v-autocomplete>
+          </v-col>
+          <v-col cols="4" class="pa-1">
+            <v-text-field variant="outlined" density="compact" label="Cantidad" v-model="conceptoClass.cantidad"
+              :rules="[rules.requerido]"></v-text-field>
+          </v-col>
+          <v-col cols="4" class="pa-1">
+            <v-text-field variant="outlined" density="compact" label="Valor Unitario"
+              v-model="conceptoClass.valorUnitario" :rules="[rules.requerido]"></v-text-field>
+          </v-col>
+          <v-col cols="4" class="pa-1">
+            <v-text-field variant="outlined" density="compact" label="Importe" v-model="conceptoClass.importe"
+              :rules="[rules.requerido]"></v-text-field>
+          </v-col>
+          <v-col cols="4" class="pa-1">
+            <v-text-field variant="outlined" density="compact" label="Descuento" v-model="conceptoClass.descuento"
+              :rules="[rules.requerido]"></v-text-field>
+          </v-col>
+          <v-col cols="12" class="pa-1">
+            <v-textarea variant="outlined" label="Descripcion" rows="3" counter="1000" no-resize
+              v-model="conceptoClass.descripcion" :rules="[rules.requerido]"></v-textarea>
+          </v-col>
+          <v-col cols="12 mb-6">
+            <v-btn variant="tonal" block color="success" @click="agregarConcepto">
+              Agregar
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-form>
+    </v-card-text>
   </v-card>
+  <v-dialog v-model="conceptosPrecargadosDialog" width="900">
+    <ConceptosPrecargados @emitConceptoPre="getEmitConceptoPre"/>
+  </v-dialog>
+  <v-dialog v-model="listClaveProdServDialog" width="900">
+    <ListaClaveProdServ :listClaveProdServDesc="desserts" @emitClaveProdServ="getEmitClaveProdServ"></ListaClaveProdServ>
+  </v-dialog>
+  <v-dialog v-model="listClaveUnidadDialog" width="900">
+    <ListaClaveUnidad :listClaveProdServDesc="desserts2" @emitClaveUnidad="getEmitClaveUnidad"></ListaClaveUnidad>
+  </v-dialog>
+  <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
+    {{ msg }}
+  </v-snackbar>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
+import Rules from "@/class/Rules";
+
+import ConceptosPrecargados from "./ConceptosPrecargados.vue";
+import ListaClaveProdServ from "./ListaClaveProdServ.vue";
+import ListaClaveUnidad from "./ListaClaveUnidad.vue";
 
 const appStore = storeApp();
+const rules = new Rules();
+const conceptoForm: any = ref(null);
 const itemsObjetoImp: any = ref([]);
 const conceptoClass = appStore.concepto;
 
@@ -78,68 +101,111 @@ let desserts2: any = ref([]);
 let showConcepto: any = ref(true);
 let arrayConceptos: any = ref([]);
 let editedIndex: any = ref(-1);
+let conceptosPrecargadosDialog: any = ref(false);
+let listClaveProdServDialog: any = ref(false);
+let listClaveUnidadDialog: any = ref(false);
+let codClaveProdServ: any = ref();
+let codClaveUnidad: any = ref();
 
+const snack: any = ref(false);
+let snackColor = "";
+let msg: String = "";
+let timeMensaje: any = ref();
+let arrayImpuestos: any = ref([]);
+
+// const props = defineProps(["listClaveProdServDesc"]);
 const emit = defineEmits(["setDatosConcepto", "closeConcepto"]);
 
 onMounted(() => {
   getObjetoImp();
-})
+});
+
+async function agregarConcepto() {
+  const { valid } = await conceptoForm.value.validate();
+  if(valid){
+    let obj = objetoConcepto();
+    if (editedIndex.value > -1) {
+      Object.assign(arrayConceptos.value[editedIndex.value], obj);
+      emit("closeConcepto");
+      editedIndex.value = -1;
+    } else {
+      arrayConceptos.value.push(obj);
+      emit("setDatosConcepto", arrayConceptos.value);
+    }
+  }else{
+    emit("setDatosConcepto", null);
+  }
+}
 
 function getClaveProdServ() {
-  axios.get(appStore.link + "/ClaveProdServ/byCod/" + conceptoClass.idClaveProdServ)
+  axios
+    .get(appStore.link + "/ClaveProdServ/byCod/" + codClaveProdServ.value)
     .then((response) => {
-      if(response.data.length > 1){
+      if (response.data.length > 1) {
+        listClaveProdServDialog.value = true;
         desserts.value = response.data;
-      }else{
-        conceptoClass.claveProdServDesc = response.data[0].descripcion;
+        // props.listClaveProdServDesc = response.data;
+      } else {
+        conceptoClass.idClaveProdServ =
+          response.data[0].codigo + ".- " + response.data[0].descripcion;
       }
+      codClaveProdServ.value = null;
     })
     .catch((e) => {
-      console.log("Fatal " + e)
-    })
+      mostrarSnack("error", "No existe. Revisa tus caracteres", 5000);
+    });
 }
 
 function getClaveUnidad() {
-  axios.get(appStore.link + "/ClaveUnidad/byId/" + conceptoClass.idClaveUnidad)
+  axios
+    .get(appStore.link + "/ClaveUnidad/byId/" + codClaveUnidad.value)
     .then((response) => {
-      if(response.data.length > 1){
+      if (response.data.length > 1) {
+        listClaveUnidadDialog.value = true;
         desserts2.value = response.data;
-      }else{
-        conceptoClass.unidad = response.data[0].descripcion;
+      } else {
+        conceptoClass.idClaveUnidad =
+          response.data[0].codigo + ".- " + response.data[0].descripcion;
       }
+      codClaveUnidad.value = null;
     })
     .catch((e) => {
-      console.log("Fatal " + e)
-    })
+      mostrarSnack("error", "No existe. Revisa tus caracteres", 5000);
+    });
 }
 
 function getObjetoImp() {
-  axios.get(appStore.link + "/ObjetoImp/get")
+  axios
+    .get(appStore.link + "/ObjetoImp/get")
     .then((response) => {
       itemsObjetoImp.value = response.data;
     })
     .catch((e) => {
-      console.log("Fatal " + e)
-    })
+      console.log("Fatal " + e);
+    });
 }
 
-function agregarConcepto() {
-  let obj = objetoConcepto();
-  if (editedIndex.value > -1) {
-    Object.assign(arrayConceptos.value[editedIndex.value], obj);
-    emit("closeConcepto");
-    editedIndex.value = -1;
-  } else {
-    arrayConceptos.value.push(obj);
-    emit("setDatosConcepto", arrayConceptos.value);
-  }
+function getEmitConceptoPre(item: any){
+  Object.assign(conceptoClass, item);
+  arrayImpuestos.value = item.datosImpuesto;
+  conceptosPrecargadosDialog.value = false;
+}
+
+function getEmitClaveProdServ(item: any) {
+  listClaveProdServDialog.value = false;
+  conceptoClass.idClaveProdServ = item.codigo + ".- " + item.descripcion;
+}
+
+function getEmitClaveUnidad(item: any) {
+  listClaveUnidadDialog.value = false;
+  conceptoClass.idClaveUnidad = item.codigo + ".- " + item.descripcion;
 }
 
 function cargarDatos(item: any) {
-  conceptoClass.idClaveProdServ = item.idClaveProdServ;
-  conceptoClass.claveProdServDesc = item.claveProdServDesc;
-  conceptoClass.idClaveUnidad = item.idClaveUnidad;
-  conceptoClass.unidad = item.unidad;
+  conceptoClass.idClaveProdServ = item.claveProdServDesc;
+  // conceptoClass.claveProdServDesc = item.claveProdServDesc;
+  conceptoClass.idClaveUnidad = item.idClaveUnidad + ".- " + item.unidad;
+  // conceptoClass.unidad = item.unidad;
   conceptoClass.idObjetoImp = item.idObjetoImp;
   conceptoClass.cantidad = item.cantidad;
   conceptoClass.valorUnitario = item.valorUnitario;
@@ -149,28 +215,44 @@ function cargarDatos(item: any) {
   editedIndex.value = arrayConceptos.value.indexOf(item);
 }
 
-function objetoConcepto(){
+function objetoConcepto() {
+  let codClaveProdServ = conceptoClass.idClaveProdServ.split(".");
+  let codClaveUnidad = conceptoClass.idClaveUnidad.split(".");
+  let unidad2 = codClaveUnidad[1].replace("- ", "");
   let obj = {
-    idClaveProdServ: conceptoClass.idClaveProdServ,
-    claveProdServDesc: conceptoClass.claveProdServDesc,
-    idClaveUnidad: conceptoClass.idClaveUnidad,
-    unidad: conceptoClass.unidad,
+    idClaveProdServ: codClaveProdServ[0],
+    claveProdServDesc: conceptoClass.idClaveProdServ,
+    idClaveUnidad: codClaveUnidad[0],
+    unidad: unidad2,
     cantidad: conceptoClass.cantidad,
     idObjetoImp: conceptoClass.idObjetoImp,
     valorUnitario: conceptoClass.valorUnitario,
     importe: conceptoClass.importe,
     descuento: conceptoClass.descuento,
-    descripcion: conceptoClass.descripcion, 
+    descripcion: conceptoClass.descripcion,
+  } as any;
+
+  if(arrayImpuestos.value.length > 0){
+    console.log("Simon")
+    obj.datosImpuesto = arrayImpuestos.value;
+  }else{
+    console.log("Nel")
   }
   return obj;
 }
-
 
 function titleAutoComplete(item: any) {
   return item.codigo + " - " + item.descripcion;
 }
 
+function mostrarSnack(color: any, msgSnack: any, time: any) {
+  snackColor = color;
+  msg = msgSnack;
+  time = timeMensaje;
+  snack.value = true;
+}
+
 defineExpose({
   cargarDatos,
-})
+});
 </script>

@@ -4,7 +4,10 @@
       Comprobante
       <v-spacer></v-spacer>
       <v-divider class="mx-4" inset vertical></v-divider>
-      <v-btn @click="agregarConcepto">Añadir Concepto</v-btn>
+      <v-btn @click="agregarConcepto" color="success">
+        <v-icon size="x-large">mdi-plus</v-icon>
+        <v-tooltip activator="parent" location="end">Agregar Concepto</v-tooltip>
+      </v-btn>
       <v-divider class="mx-4" inset vertical></v-divider>
       <v-icon :icon="showComprobante ? 'mdi-chevron-up' : 'mdi-chevron-down'"
         @click="showComprobante = !showComprobante"></v-icon>
@@ -12,45 +15,48 @@
     <v-divider></v-divider>
     <v-expand-transition>
       <div class="mx-4 mt-4" v-show="showComprobante">
-        <v-form>
+        <v-form ref="comprobanteForm" fast-fail @submit.prevent>
           <v-row no-gutters>
-            <v-col class="pa-1">
+            <v-col cols="2" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Tipo de Comprobante"
                 :items="itemsTipoComprobante" :item-title="titleAutoComplete" item-value="codigo"
-                v-model="comprobanteClass.idTipoComprobante"></v-autocomplete>
+                v-model="comprobanteClass.idTipoComprobante" :rules="[rules.requerido]"></v-autocomplete>
             </v-col>
-            <v-col class="pa-1">
+            <v-col cols="10" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Exportación" :items="itemsExportacion"
                 :item-title="titleAutoComplete" item-value="codigo"
-                v-model="comprobanteClass.idExportacion"></v-autocomplete>
+                v-model="comprobanteClass.idExportacion" :rules="[rules.requerido]"></v-autocomplete>
             </v-col>
             <v-col class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Forma de Pago" :items="itemsFormaPago"
                 :item-title="titleAutoComplete" item-value="codigo"
-                v-model="comprobanteClass.idFormaPago"></v-autocomplete>
+                v-model="comprobanteClass.idFormaPago" :rules="[rules.requerido]"></v-autocomplete>
             </v-col>
             <v-col class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Metodo de Pago" :items="itemsMetodoPago"
                 :item-title="titleAutoComplete" item-value="codigo"
-                v-model="comprobanteClass.idMetodoPago"></v-autocomplete>
+                v-model="comprobanteClass.idMetodoPago" :rules="[rules.requerido]"></v-autocomplete>
             </v-col>
           </v-row>
         </v-form>
       </div>
     </v-expand-transition>
   </v-card>
+  
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
-
-const appStore = storeApp();
-const comprobanteClass = appStore.comprobante;
+import Rules from "@/class/Rules";
 
 const emit = defineEmits(["abrirConcepto"]);
 
+const appStore = storeApp();
+const rules = new Rules();
+const comprobanteClass = appStore.comprobante;
+const comprobanteForm: any = ref(null);
 const itemsTipoComprobante: any = ref([]);
 const itemsExportacion: any = ref([]);
 const itemsFormaPago: any = ref([]);
@@ -110,9 +116,14 @@ function getMetodoPago() {
     });
 }
 
-function setDatosComprobante(){
-  arrayComprobante.value = comprobanteClass;
-  return arrayComprobante.value;
+async function setDatosComprobante(){
+  const { valid } = await comprobanteForm.value.validate();
+  if(valid){
+    arrayComprobante.value = comprobanteClass;
+    return arrayComprobante.value;
+  }else{
+    return null;
+  }
 }
 
 function agregarConcepto() {
