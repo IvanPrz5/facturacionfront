@@ -91,15 +91,17 @@ function agregarImpuesto() {
   if (editedIndex.value > -1) {
     Object.assign(arrayImpuestos.value[editedIndex.value], obj);
     emit("closeImpuesto")
-    editedIndex.value = -1;
+    // editedIndex.value = -1;
   } else {
+    console.log("agrega")
     arrayImpuestos.value.push(obj);
+    console.log(arrayImpuestos.value)
     emit("setDatosImpuesto", arrayImpuestos.value)
   }
 }
 
 function cargarDatos(item: any) {
-  impuestoClass.codImpuesto.value = item.codImpuesto;
+  impuestoClass.codImpuesto = item.codImpuesto;
   impuestoClass.codTipoFactor = item.codTipoFactor;
   impuestoClass.codTasaCuota = item.codTasaCuota;
   impuestoClass.importe = item.base;

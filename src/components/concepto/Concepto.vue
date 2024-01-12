@@ -113,10 +113,14 @@ let msg: String = "";
 let timeMensaje: any = ref();
 let arrayImpuestos: any = ref([]);
 
-// const props = defineProps(["listClaveProdServDesc"]);
+const props = defineProps(["propEditar"]);
 const emit = defineEmits(["setDatosConcepto", "closeConcepto"]);
 
 onMounted(() => {
+  if(props.propEditar != null){
+    console.log(props.propEditar)
+    cargarDatos();
+  }
   getObjetoImp();
 });
 
@@ -125,12 +129,14 @@ async function agregarConcepto() {
   if(valid){
     let obj = objetoConcepto();
     if (editedIndex.value > -1) {
-      Object.assign(arrayConceptos.value[editedIndex.value], obj);
+      // Object.assign(arrayConceptos.value[editedIndex.value], obj);
+      emit("setDatosConcepto", obj);
       emit("closeConcepto");
-      editedIndex.value = -1;
+      // editedIndex.value = -1;
     } else {
-      arrayConceptos.value.push(obj);
-      emit("setDatosConcepto", arrayConceptos.value);
+      // arrayConceptos.value.push(obj);
+      // console.log(arrayConceptos.value)
+      emit("setDatosConcepto", obj);
     }
   }else{
     emit("setDatosConcepto", null);
@@ -201,18 +207,21 @@ function getEmitClaveUnidad(item: any) {
   conceptoClass.idClaveUnidad = item.codigo + ".- " + item.descripcion;
 }
 
-function cargarDatos(item: any) {
-  conceptoClass.idClaveProdServ = item.claveProdServDesc;
-  // conceptoClass.claveProdServDesc = item.claveProdServDesc;
-  conceptoClass.idClaveUnidad = item.idClaveUnidad + ".- " + item.unidad;
-  // conceptoClass.unidad = item.unidad;
-  conceptoClass.idObjetoImp = item.idObjetoImp;
-  conceptoClass.cantidad = item.cantidad;
-  conceptoClass.valorUnitario = item.valorUnitario;
-  conceptoClass.importe = item.importe;
-  conceptoClass.descuento = item.descuento;
-  conceptoClass.descripcion = item.descripcion;
-  editedIndex.value = arrayConceptos.value.indexOf(item);
+function cargarDatos() {
+
+  console.log("Entro")
+
+  conceptoClass.idClaveProdServ = props.propEditar.claveProdServDesc;
+  // conceptoClass.claveProdServDesc = props.propEditar.claveProdServDesc;
+  conceptoClass.idClaveUnidad = props.propEditar.idClaveUnidad + ".- " + props.propEditar.unidad;
+  // conceptoClass.unidad = props.propEditar.unidad;
+  conceptoClass.idObjetoImp = props.propEditar.idObjetoImp;
+  conceptoClass.cantidad = props.propEditar.cantidad;
+  conceptoClass.valorUnitario = props.propEditar.valorUnitario;
+  conceptoClass.importe = props.propEditar.importe;
+  conceptoClass.descuento = props.propEditar.descuento;
+  conceptoClass.descripcion = props.propEditar.descripcion;
+  editedIndex.value = arrayConceptos.value.indexOf(props.propEditar);
 }
 
 function objetoConcepto() {
@@ -232,11 +241,10 @@ function objetoConcepto() {
     descripcion: conceptoClass.descripcion,
   } as any;
 
-  if(arrayImpuestos.value.length > 0){
-    console.log("Simon")
+  if(arrayImpuestos.value != null){
     obj.datosImpuesto = arrayImpuestos.value;
   }else{
-    console.log("Nel")
+    console.log("No")
   }
   return obj;
 }

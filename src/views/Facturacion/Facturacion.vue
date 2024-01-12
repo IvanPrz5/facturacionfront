@@ -20,7 +20,7 @@
                     <v-list-item v-bind="props" :title="i.descripcion"></v-list-item>
                   </v-col>
                   <v-col cols="2">
-                    <v-btn variant="text" icon="mdi-cash-plus" color="green-lighten-2" @click="abrirImpuesto(i)"></v-btn>
+                    <v-btn variant="text" icon="mdi-cash-plus" color="green-lighten-2" @click="aplicarImpuesto(i)"></v-btn>
                     <v-btn variant="text" icon="mdi-pencil" color="blue-lighten-2" @click="editarConcepto(i)"></v-btn>
                     <v-btn variant="text" icon="mdi-delete" color="red-lighten-2" @click="eliminarConcepto(i)"></v-btn>
                   </v-col>
@@ -104,8 +104,8 @@
       </v-col>
     </v-row>
   </v-container>
-  <v-dialog v-model="showConcepto" width="900" eager>
-    <Concepto ref="concepto" @setDatosConcepto="getDatosConceptos" @closeConcepto="cerrarConcepto" />
+  <v-dialog v-model="showConcepto" width="900">
+    <Concepto ref="concepto" :propEditar="propEditar" @setDatosConcepto="getDatosConceptos" @closeConcepto="cerrarConcepto" />
   </v-dialog>
   <v-dialog v-model="dialogImpuesto" width="700">
     <Impuesto ref="impuesto" @closeImpuesto="cerrarImpuesto" @setDatosImpuesto="getDatosImpuestos" />
@@ -152,9 +152,11 @@ let dialogImpuesto: any = ref(false);
 let dialog: any = ref(false);
 
 let arrayConceptos: any = ref([]);
-let arrayImpuestos: any = ref([]);
+let propEditar: any = ref();
+// let arrayImpuestos: any = ref([]);
 
 let conceptoIndex: any = ref(-1);
+let editarConceptoIndex: any = ref(-1);
 
 const snack: any = ref(false);
 let snackColor = "";
@@ -164,8 +166,7 @@ let timeMensaje: any = ref();
 async function generarFactura() {
   // dialog.value = true;
   let datosCliente = getDatosCliente();
-  console.log(datosFactura.value.datosReceptor)
-  // let datosComprobante = getDatosComprobante();
+  let datosComprobante = getDatosComprobante();
   /* if (datosCliente != null && datosComprobante != null) {
     datosFactura.value.datosConcepto = arrayConceptos.value;
     await axios
@@ -198,8 +199,11 @@ function getDatosComprobante() {
 
 function getDatosConceptos(item: any) {
   if (item != null) {
-    arrayConceptos.value = item;
-    console.log(arrayConceptos.value)
+    if(editarConceptoIndex > -1){
+      Object.assign(arrayConceptos.value[editarConceptoIndex.value], item);
+    }else{
+      arrayConceptos.value.push(item);
+    }
     // arrayConceptos.value.datosImpuesto = item.datosImpuesto;
     cerrarConcepto();
   } else {
@@ -208,8 +212,9 @@ function getDatosConceptos(item: any) {
 }
 
 function getDatosImpuestos(item: any) {
-  arrayImpuestos.value = item;
+  // arrayImpuestos.value = item;
   arrayConceptos.value[conceptoIndex.value].datosImpuesto = item;
+  console.log(arrayConceptos.value)
   cerrarImpuesto();
 }
 
@@ -220,7 +225,9 @@ function abrirConcepto() {
 
 function editarConcepto(item: any) {
   showConcepto.value = true;
-  concepto.value?.cargarDatos(item);
+  propEditar.value = item;
+  editarConceptoIndex.value = item;
+  // concepto.value?.cargarDatos(item);
 }
 
 function eliminarConcepto(item: any) {
@@ -231,12 +238,14 @@ function cerrarConcepto() {
   showConcepto.value = false;
 }
 
-function abrirImpuesto(item: any) {
+function aplicarImpuesto(item: any) {
   dialogImpuesto.value = true;
   conceptoIndex.value = arrayConceptos.value.indexOf(item);
+  console.log(conceptoIndex.value)
 }
 
 function editarImpuesto(item: any) {
+  dialogImpuesto.value = true;
   impuesto.value?.cargarDatos(item);
 }
 
