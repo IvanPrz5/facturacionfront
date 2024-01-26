@@ -28,8 +28,8 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn variant="tonal" color="red" @click="cerrarImpuesto">Cancelar</v-btn>
-        <v-btn variant="tonal" color="success" @click="agregarImpuesto">Agregar</v-btn>
+        <!-- <v-btn variant="tonal" color="red" @click="cerrarImpuesto">Cancelar</v-btn> -->
+        <v-btn variant="tonal" block color="success" @click="agregarImpuesto"> {{ btnText }} </v-btn>
       </v-card-actions>
     </v-card>
 </template>
@@ -45,12 +45,16 @@ const itemsImpuesto: any = ref([]);
 const itemsTipoFactor: any = ref([]);
 const itemsTasaCuota: any = ref([]);
 
-let arrayImpuestos: any = ref([]);
-let editedIndex: any = ref(-1);
+let btnText: any = ref("Agregar");
 
-const emit = defineEmits(["closeImpuesto", "setDatosImpuesto"]);
+const props = defineProps(["propImpuesto"]);  
+const emit = defineEmits(["closeImpuesto", "actualizarImpuesto", "setDatosImpuesto"]);
 
 onMounted(() => {
+  if(props.propImpuesto != null){
+    btnText.value = "Editar"
+    cargarDatos();
+  }
   getImpuesto();
   getTipoFactor();
   getTasaCuota();
@@ -88,25 +92,20 @@ function getTasaCuota() {
 
 function agregarImpuesto() {
   let obj =  objetoImpuesto();
-  if (editedIndex.value > -1) {
-    Object.assign(arrayImpuestos.value[editedIndex.value], obj);
-    emit("closeImpuesto")
-    // editedIndex.value = -1;
+  if (props.propImpuesto != null) {
+    emit("closeImpuesto");
+    emit("actualizarImpuesto", obj)
   } else {
-    console.log("agrega")
-    arrayImpuestos.value.push(obj);
-    console.log(arrayImpuestos.value)
-    emit("setDatosImpuesto", arrayImpuestos.value)
+    emit("setDatosImpuesto", obj)
   }
 }
 
-function cargarDatos(item: any) {
-  impuestoClass.codImpuesto = item.codImpuesto;
-  impuestoClass.codTipoFactor = item.codTipoFactor;
-  impuestoClass.codTasaCuota = item.codTasaCuota;
-  impuestoClass.importe = item.base;
-  impuestoClass.base = item.importe;
-  editedIndex.value = arrayImpuestos.value.indexOf(item);
+function cargarDatos() {
+  impuestoClass.codImpuesto = props.propImpuesto.codImpuesto;
+  impuestoClass.codTipoFactor = props.propImpuesto.codTipoFactor;
+  impuestoClass.codTasaCuota = props.propImpuesto.codTasaCuota;
+  impuestoClass.importe = props.propImpuesto.base;
+  impuestoClass.base = props.propImpuesto.importe;
 }
 
 function objetoImpuesto(){

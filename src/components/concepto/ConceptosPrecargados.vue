@@ -59,7 +59,6 @@ onMounted(() => {
 function getConceptosPrecargados(){
   axios.get(appStore.link + "/ConceptosPrecargados/all")
   .then((response) => {
-    console.log(response.data)
     desserts.value = response.data;
   })
   .catch((e) => {

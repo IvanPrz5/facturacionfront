@@ -59,7 +59,7 @@
           </v-col>
           <v-col cols="12 mb-6">
             <v-btn variant="tonal" block color="success" @click="agregarConcepto">
-              Agregar
+              {{ btnText }}
             </v-btn>
           </v-col>
         </v-row>
@@ -99,8 +99,6 @@ const conceptoClass = appStore.concepto;
 let desserts: any = ref([]);
 let desserts2: any = ref([]);
 let showConcepto: any = ref(true);
-let arrayConceptos: any = ref([]);
-let editedIndex: any = ref(-1);
 let conceptosPrecargadosDialog: any = ref(false);
 let listClaveProdServDialog: any = ref(false);
 let listClaveUnidadDialog: any = ref(false);
@@ -113,12 +111,14 @@ let msg: String = "";
 let timeMensaje: any = ref();
 let arrayImpuestos: any = ref([]);
 
-const props = defineProps(["propEditar"]);
-const emit = defineEmits(["setDatosConcepto", "closeConcepto"]);
+let btnText: any = ref("Agregar");
+
+const props = defineProps(["propConcepto"]);
+const emit = defineEmits(["setDatosConcepto", "actualizar", "closeConcepto"]);
 
 onMounted(() => {
-  if(props.propEditar != null){
-    console.log(props.propEditar)
+  if(props.propConcepto != null){
+    btnText.value = "Editar"
     cargarDatos();
   }
   getObjetoImp();
@@ -128,14 +128,10 @@ async function agregarConcepto() {
   const { valid } = await conceptoForm.value.validate();
   if(valid){
     let obj = objetoConcepto();
-    if (editedIndex.value > -1) {
-      // Object.assign(arrayConceptos.value[editedIndex.value], obj);
-      emit("setDatosConcepto", obj);
+    if (props.propConcepto != null) {
       emit("closeConcepto");
-      // editedIndex.value = -1;
+      emit("actualizar", obj);
     } else {
-      // arrayConceptos.value.push(obj);
-      // console.log(arrayConceptos.value)
       emit("setDatosConcepto", obj);
     }
   }else{
@@ -150,7 +146,6 @@ function getClaveProdServ() {
       if (response.data.length > 1) {
         listClaveProdServDialog.value = true;
         desserts.value = response.data;
-        // props.listClaveProdServDesc = response.data;
       } else {
         conceptoClass.idClaveProdServ =
           response.data[0].codigo + ".- " + response.data[0].descripcion;
@@ -192,9 +187,11 @@ function getObjetoImp() {
 }
 
 function getEmitConceptoPre(item: any){
-  Object.assign(conceptoClass, item);
-  arrayImpuestos.value = item.datosImpuesto;
-  conceptosPrecargadosDialog.value = false;
+  if(item != null){
+    Object.assign(conceptoClass, item);
+    arrayImpuestos.value = item.datosImpuesto;
+    conceptosPrecargadosDialog.value = false;
+  }
 }
 
 function getEmitClaveProdServ(item: any) {
@@ -208,20 +205,16 @@ function getEmitClaveUnidad(item: any) {
 }
 
 function cargarDatos() {
-
-  console.log("Entro")
-
-  conceptoClass.idClaveProdServ = props.propEditar.claveProdServDesc;
-  // conceptoClass.claveProdServDesc = props.propEditar.claveProdServDesc;
-  conceptoClass.idClaveUnidad = props.propEditar.idClaveUnidad + ".- " + props.propEditar.unidad;
-  // conceptoClass.unidad = props.propEditar.unidad;
-  conceptoClass.idObjetoImp = props.propEditar.idObjetoImp;
-  conceptoClass.cantidad = props.propEditar.cantidad;
-  conceptoClass.valorUnitario = props.propEditar.valorUnitario;
-  conceptoClass.importe = props.propEditar.importe;
-  conceptoClass.descuento = props.propEditar.descuento;
-  conceptoClass.descripcion = props.propEditar.descripcion;
-  editedIndex.value = arrayConceptos.value.indexOf(props.propEditar);
+  conceptoClass.idClaveProdServ = props.propConcepto.claveProdServDesc;
+  // conceptoClass.claveProdServDesc = props.propConcepto.claveProdServDesc;
+  conceptoClass.idClaveUnidad = props.propConcepto.idClaveUnidad + ".- " + props.propConcepto.unidad;
+  // conceptoClass.unidad = props.propConcepto.unidad;
+  conceptoClass.idObjetoImp = props.propConcepto.idObjetoImp;
+  conceptoClass.cantidad = props.propConcepto.cantidad;
+  conceptoClass.valorUnitario = props.propConcepto.valorUnitario;
+  conceptoClass.importe = props.propConcepto.importe;
+  conceptoClass.descuento = props.propConcepto.descuento;
+  conceptoClass.descripcion = props.propConcepto.descripcion;
 }
 
 function objetoConcepto() {
@@ -239,13 +232,13 @@ function objetoConcepto() {
     importe: conceptoClass.importe,
     descuento: conceptoClass.descuento,
     descripcion: conceptoClass.descripcion,
+    datosImpuesto: []
   } as any;
 
   if(arrayImpuestos.value != null){
     obj.datosImpuesto = arrayImpuestos.value;
-  }else{
-    console.log("No")
   }
+  
   return obj;
 }
 

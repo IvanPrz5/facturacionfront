@@ -7,7 +7,7 @@
         hide-details append-inner-icon="mdi-magnify" v-model="nombreRfc" @click:append-inner="buscarPorNombreOrRfc"
         @keyup.enter="buscarPorNombreOrRfc"></v-text-field>
       <v-divider class="mx-4" inset vertical></v-divider>
-      <v-btn @click="agregarCliente" color="success">
+      <v-btn @click="agregarCliente" color="indigo">
         <v-icon size="x-large">mdi-plus</v-icon>
         <v-tooltip activator="parent" location="end">Si tu cliente no aparece, crealo</v-tooltip>
       </v-btn>
@@ -50,6 +50,9 @@
       </div>
     </v-expand-transition>
   </v-card>
+  <v-dialog v-model="listClientesDialog" width="900">
+    <ListClientes :listClientes="desserts" @emitClientes="emitClientes"/>
+  </v-dialog>
   <v-dialog v-model="dialogCliente" width="900">
     <AñadirCliente @clienteAgregado="clienteAgregado" />
   </v-dialog>
@@ -63,6 +66,7 @@ import { ref } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
 import AñadirCliente from "./AñadirCliente.vue";
+import ListClientes from "./ListClientes.vue";
 import Rules from "@/class/Rules";
 
 const appStore = storeApp();
@@ -73,6 +77,8 @@ const clienteForm: any = ref(null)
 let arrayCliente: any = ref([]);
 let showCliente: any = ref(true);
 let dialogCliente: any = ref(false);
+let listClientesDialog: any = ref(false);
+let desserts: any = ref([]);
 let nombreRfc: any = ref() // MTV850101H72
 
 const snack: any = ref(false);
@@ -82,32 +88,33 @@ let timeMensaje: any = ref();
 
 async function buscarPorNombreOrRfc() {
   await axios
-    .get(appStore.link + "/Clientes/byNombreOrRfc/" + nombreRfc.value)
+    .get(appStore.link + "/Clientes/byNombreOrRfc/" + nombreRfc.value.toUpperCase())
     .then((response) => {
-      if (response.data == "") {
-        mostrarSnack("error", "El cliente no existe, revise sus datos", 5000);
-      } else {
-        clienteClass.nombre = response.data.nombre;
-        clienteClass.rfc = response.data.rfc;
-        clienteClass.domicilioFiscal = response.data.domicilioFiscal;
-        clienteClass.regimenFiscal = response.data.regimenFiscal;
-        clienteClass.usoCfdi = response.data.usoCfdi;
-        nombreRfc.value = null;
+      if(response.data.length > 1){
+        listClientesDialog.value = true;
+        desserts.value = response.data;
+      }else{
+        clienteClass.nombre = response.data[0].nombre;
+        clienteClass.rfc = response.data[0].rfc;
+        clienteClass.domicilioFiscal = response.data[0].domicilioFiscal;
+        clienteClass.regimenFiscal = response.data[0].regimenFiscal;
+        clienteClass.usoCfdi = response.data[0].usoCfdi;
       }
+      nombreRfc.value = null;
     })
     .catch((e) => {
-      console.log("Fatal " + e);
+      mostrarSnack("error", "El cliente no existe, revise sus datos", 5000);
     });
 }
 
-async function setDatosCliente() {
-  const { valid } = await clienteForm.value.validate();
-  if (valid) {
+function setDatosCliente() {
+  /* const { valid } = await clienteForm.value.validate();
+  if (valid) { */
     arrayCliente.value = objetoConcepto();
     return arrayCliente.value;
-  } else {
+  /* } else {
     return null;
-  }
+  } */
 }
 
 function objetoConcepto() {
@@ -138,6 +145,11 @@ async function clienteAgregado(item: any) {
   nombreRfc.value = item;
   await buscarPorNombreOrRfc();
   // Object.assign(clienteClass, item);
+}
+
+function emitClientes(item: any){
+  Object.assign(clienteClass, item);
+  listClientesDialog.value = false;
 }
 
 function mostrarSnack(color: any, msgSnack: any, time: any) {

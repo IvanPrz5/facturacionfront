@@ -6,12 +6,20 @@
       </v-col>
       <v-col cols="12">
         <div v-show="showComprobante">
-          <Comprobante ref="comprobante" @abrirConcepto="abrirConcepto"></Comprobante>
+          <Comprobante ref="comprobante" @abrirConcepto="crearConcepto"></Comprobante>
         </div>
       </v-col>
       <v-col v-if="arrayConceptos.length > 0" cols="12">
-        <v-card>
-          <v-card-title class="bg-primary">Conceptos Agregados</v-card-title>
+        <v-card variant="tonal">
+          <v-card-title class="d-flex">
+            Conceptos Agregados
+            <v-spacer></v-spacer>
+            <v-divider class="mx-4" inset vertical></v-divider>
+            <v-btn color="indigo" @click="crearConcepto">
+              <v-icon size="x-large">mdi-plus</v-icon>
+              <v-tooltip activator="parent" location="end">Agregar Concepto</v-tooltip>
+            </v-btn>
+          </v-card-title>
           <v-list>
             <v-list-group v-for="i in arrayConceptos">
               <template v-slot:activator="{ props }">
@@ -20,7 +28,8 @@
                     <v-list-item v-bind="props" :title="i.descripcion"></v-list-item>
                   </v-col>
                   <v-col cols="2">
-                    <v-btn variant="text" icon="mdi-cash-plus" color="green-lighten-2" @click="aplicarImpuesto(i)"></v-btn>
+                    <v-btn variant="text" icon="mdi-cash-plus" color="green-lighten-2"
+                      @click="crearImpuesto(i)"></v-btn>
                     <v-btn variant="text" icon="mdi-pencil" color="blue-lighten-2" @click="editarConcepto(i)"></v-btn>
                     <v-btn variant="text" icon="mdi-delete" color="red-lighten-2" @click="eliminarConcepto(i)"></v-btn>
                   </v-col>
@@ -33,7 +42,7 @@
                       Producto o Servicio: {{ i.claveProdServDesc }}
                     </div>
                     <div class="text-subtitle-2 text-medium-emphasis">
-                      Clave Unidad: {{ i.unidad }}
+                      Clave Unidad: {{i.idClaveUnidad}}.- {{ i.unidad }}
                     </div>
                     <div class="text-subtitle-2 text-medium-emphasis">
                       Objeto Impuesto: {{ i.idObjetoImp }}
@@ -63,9 +72,9 @@
                       </v-col>
                       <v-col cols="2">
                         <v-btn variant="text" icon="mdi-pencil-box-outline" color="indigo-lighten-2"
-                          @click="editarImpuesto(j)"></v-btn>
+                          @click="editarImpuesto(j, i)"></v-btn>
                         <v-btn variant="text" icon="mdi-delete-circle-outline" color="purple-lighten-2"
-                          @click="eliminarImpuesto(j)"></v-btn>
+                          @click="eliminarImpuesto(j, i)"></v-btn>
                       </v-col>
                     </v-row>
                   </template>
@@ -99,28 +108,39 @@
           </v-list>
         </v-card>
       </v-col>
-      <v-col>
-        <v-btn color="primary" @click="generarFactura"> Generar Factura </v-btn>
+      <v-col cols="6" v-if="arrayConceptos.length == 0">
+        <v-btn color="indigo" @click="crearConcepto"> Agregar Concepto </v-btn>
+      </v-col>
+      <v-col cols="12" class="d-flex" v-if="arrayConceptos.length > 0">
+        <v-btn color="success" @click="generarFactura"> Generar Factura </v-btn>
+        <v-spacer></v-spacer>
+        <div class="d-flex flex-column">
+          <label>SubTotal: {{ subTotal }} </label>
+          <label>Descuento: {{descuento}} </label>
+          <label>Total: {{ total }} </label>
+        </div>
       </v-col>
     </v-row>
+    <v-dialog v-model="showConcepto" width="900">
+      <Concepto ref="concepto" :propConcepto="propConcepto" @setDatosConcepto="getDatosConceptos"
+        @actualizar="actualizar" @closeConcepto="cerrarConcepto" />
+    </v-dialog>
+    <v-dialog v-model="dialogImpuesto" width="700">
+      <Impuesto ref="impuesto" :propImpuesto="propImpuesto" @closeImpuesto="cerrarImpuesto" 
+        @actualizarImpuesto="actualizarImpuesto" @setDatosImpuesto="getDatosImpuestos" />
+    </v-dialog>
+    <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
+      {{ msg }}
+    </v-snackbar>
+    <v-dialog v-model="dialog" persistent>
+      <v-card color="deep-purple">
+        <v-card-text>
+          Por favor espere.
+          <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-container>
-  <v-dialog v-model="showConcepto" width="900">
-    <Concepto ref="concepto" :propEditar="propEditar" @setDatosConcepto="getDatosConceptos" @closeConcepto="cerrarConcepto" />
-  </v-dialog>
-  <v-dialog v-model="dialogImpuesto" width="700">
-    <Impuesto ref="impuesto" @closeImpuesto="cerrarImpuesto" @setDatosImpuesto="getDatosImpuestos" />
-  </v-dialog>
-  <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
-    {{ msg }}
-  </v-snackbar>
-  <v-dialog v-model="dialog" persistent>
-    <v-card color="deep-purple">
-      <v-card-text>
-        Por favor espere.
-        <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -152,23 +172,29 @@ let dialogImpuesto: any = ref(false);
 let dialog: any = ref(false);
 
 let arrayConceptos: any = ref([]);
-let propEditar: any = ref();
+let propConcepto: any = ref();
+let propImpuesto: any = ref();
 // let arrayImpuestos: any = ref([]);
 
 let conceptoIndex: any = ref(-1);
-let editarConceptoIndex: any = ref(-1);
+let impuestoIndex: any = ref(-1)
 
 const snack: any = ref(false);
 let snackColor = "";
 let msg: String = "";
 let timeMensaje: any = ref();
 
+let subTotal: any = ref();
+let descuento: any = ref();
+let total: any = ref();
+
 async function generarFactura() {
   // dialog.value = true;
-  let datosCliente = getDatosCliente();
-  let datosComprobante = getDatosComprobante();
-  /* if (datosCliente != null && datosComprobante != null) {
+  getDatosCliente();
+  getDatosComprobante();
+  // if (datosCliente != null && datosComprobante != null) {
     datosFactura.value.datosConcepto = arrayConceptos.value;
+    console.log(datosFactura.value);
     await axios
       .post(appStore.link + "/Facturacion/crearXml", datosFactura.value)
       .then((response) => {
@@ -184,50 +210,44 @@ async function generarFactura() {
       .catch((e) => {
         console.log("Fatal" + e);
       });
-  } else {
-    console.log("No dejar campos vacios")
-  } */
+  // } else {
+  //   console.log("No dejar campos vacios")
+  // }
 }
 
 function getDatosCliente() {
   datosFactura.value.datosReceptor = cliente.value?.setDatosCliente();
+  console.log(datosFactura.value.datosReceptor);
 }
 
 function getDatosComprobante() {
   datosFactura.value.datosComprobante = comprobante.value?.setDatosComprobante();
+  console.log(datosFactura.value.datosComprobante);
+}
+
+function crearConcepto() {
+  showConcepto.value = true;
+  propConcepto.value = null;
+  // cliente.value?.ocultar();
 }
 
 function getDatosConceptos(item: any) {
   if (item != null) {
-    if(editarConceptoIndex > -1){
-      Object.assign(arrayConceptos.value[editarConceptoIndex.value], item);
-    }else{
-      arrayConceptos.value.push(item);
-    }
-    // arrayConceptos.value.datosImpuesto = item.datosImpuesto;
+    arrayConceptos.value.push(item);
     cerrarConcepto();
-  } else {
-    console.log(item)
   }
-}
-
-function getDatosImpuestos(item: any) {
-  // arrayImpuestos.value = item;
-  arrayConceptos.value[conceptoIndex.value].datosImpuesto = item;
-  console.log(arrayConceptos.value)
-  cerrarImpuesto();
-}
-
-function abrirConcepto() {
-  showConcepto.value = true;
-  cliente.value?.ocultar();
 }
 
 function editarConcepto(item: any) {
   showConcepto.value = true;
-  propEditar.value = item;
-  editarConceptoIndex.value = item;
-  // concepto.value?.cargarDatos(item);
+  propConcepto.value = item;
+  conceptoIndex.value = arrayConceptos.value.indexOf(item);
+}
+
+function actualizar(item: any){
+  if(item != null){
+    Object.assign(arrayConceptos.value[conceptoIndex.value], item);
+  }
 }
 
 function eliminarConcepto(item: any) {
@@ -238,19 +258,32 @@ function cerrarConcepto() {
   showConcepto.value = false;
 }
 
-function aplicarImpuesto(item: any) {
+function crearImpuesto(item: any) {
   dialogImpuesto.value = true;
+  propImpuesto.value = null;
   conceptoIndex.value = arrayConceptos.value.indexOf(item);
-  console.log(conceptoIndex.value)
 }
 
-function editarImpuesto(item: any) {
+function getDatosImpuestos(item: any) {
+  arrayConceptos.value[conceptoIndex.value].datosImpuesto.push(item);
+  cerrarImpuesto();
+}
+
+function editarImpuesto(imp: any, concep:any) {
   dialogImpuesto.value = true;
-  impuesto.value?.cargarDatos(item);
+  propImpuesto.value = imp;
+  conceptoIndex.value = arrayConceptos.value.indexOf(concep);
+  impuestoIndex.value = arrayConceptos.value[conceptoIndex.value].datosImpuesto.indexOf(imp);
 }
 
-function eliminarImpuesto(item: any) {
-  arrayConceptos.value[conceptoIndex.value].datosImpuesto.splice(item.value);
+function actualizarImpuesto(item: any){
+  Object.assign(arrayConceptos.value[conceptoIndex.value].datosImpuesto[impuestoIndex.value], item);
+}
+
+function eliminarImpuesto(imp: any, concep:any) {
+  conceptoIndex.value = arrayConceptos.value.indexOf(concep);
+  impuestoIndex.value = arrayConceptos.value[conceptoIndex.value].datosImpuesto.indexOf(imp);
+  arrayConceptos.value[conceptoIndex.value].datosImpuesto.splice(impuestoIndex.value, 1)
 }
 
 function cerrarImpuesto() {

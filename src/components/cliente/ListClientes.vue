@@ -1,18 +1,15 @@
 <template>
   <v-card>
-    <v-card-title class="bg-primary"> Selecciona la unidad </v-card-title>
+    <v-card-title class="bg-primary">
+      Selecciona el Cliente
+    </v-card-title>
     <v-card-text>
       <v-form>
         <v-row no-gutters>
           <v-spacer></v-spacer>
           <v-col cols="4">
-            <v-text-field
-              variant="solo"
-              density="compact"
-              placeholder="Buscar"
-              v-model="search"
-              append-icon="mdi-magnify"
-            ></v-text-field>
+            <v-text-field variant="solo" density="compact" placeholder="Buscar" v-model="search"
+              append-icon="mdi-magnify"></v-text-field>
           </v-col>
           <v-col cols="12">
             <v-data-table :headers="headers" :items="desserts" :search="search">
@@ -33,17 +30,17 @@
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
 
-const props = defineProps(["listClaveProdServDesc"]);
-const emit = defineEmits(["emitClaveUnidad"]);
+const props = defineProps(["listClientes"]);
+const emit = defineEmits(["emitClientes"]);
 
 const headers: any = ref([
   {
-    title: "Codigo",
-    key: "codigo",
+    title: "Nombre",
+    key: "nombre",
   },
   {
-    title: "Descripcion",
-    key: "descripcion",
+    title: "RFC",
+    key: "rfc",
   },
   {
     title: "Actions",
@@ -55,10 +52,11 @@ let desserts: any = ref([]);
 let search: any = ref("");
 
 onMounted(() => {
-  desserts.value = props.listClaveProdServDesc;
+  desserts.value = props.listClientes;
+  console.log(desserts.value)
 });
 
 function selecItem(item: any) {
-  emit("emitClaveUnidad", item);
+  emit("emitClientes", item);
 }
 </script>

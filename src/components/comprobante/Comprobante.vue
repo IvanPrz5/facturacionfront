@@ -3,11 +3,10 @@
     <v-card-title class="d-flex">
       Comprobante
       <v-spacer></v-spacer>
-      <v-divider class="mx-4" inset vertical></v-divider>
-      <v-btn @click="agregarConcepto" color="success">
+      <!-- <v-btn @click="agregarConcepto" color="success">
         <v-icon size="x-large">mdi-plus</v-icon>
         <v-tooltip activator="parent" location="end">Agregar Concepto</v-tooltip>
-      </v-btn>
+      </v-btn> -->
       <v-divider class="mx-4" inset vertical></v-divider>
       <v-icon :icon="showComprobante ? 'mdi-chevron-up' : 'mdi-chevron-down'"
         @click="showComprobante = !showComprobante"></v-icon>
@@ -17,12 +16,12 @@
       <div class="mx-4 mt-4" v-show="showComprobante">
         <v-form ref="comprobanteForm" fast-fail @submit.prevent>
           <v-row no-gutters>
-            <v-col cols="2" class="pa-1">
+            <v-col cols="3" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Tipo de Comprobante"
                 :items="itemsTipoComprobante" :item-title="titleAutoComplete" item-value="codigo"
                 v-model="comprobanteClass.idTipoComprobante" :rules="[rules.requerido]"></v-autocomplete>
             </v-col>
-            <v-col cols="10" class="pa-1">
+            <v-col cols="9" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Exportación" :items="itemsExportacion"
                 :item-title="titleAutoComplete" item-value="codigo"
                 v-model="comprobanteClass.idExportacion" :rules="[rules.requerido]"></v-autocomplete>
@@ -116,21 +115,19 @@ function getMetodoPago() {
     });
 }
 
-async function setDatosComprobante(){
-  const { valid } = await comprobanteForm.value.validate();
-  if(valid){
+function setDatosComprobante(){
+  /* const { valid } = comprobanteForm.value.validate();
+  if(valid){ */
     arrayComprobante.value = comprobanteClass;
+    console.log(arrayComprobante.value)
     return arrayComprobante.value;
-  }else{
+  /* }else{
     return null;
-  }
+  } */
 }
 
 function agregarConcepto() {
   emit("abrirConcepto");
-  // showConcepto.value = true;
-  // showCliente.value = false;
-  // showListConceptos.value = true;
 }
 
 function titleAutoComplete(item: any) {
