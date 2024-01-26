@@ -16,6 +16,11 @@ const routes = [
         name: 'Facturacion',
         component: () => import('@/views/Facturacion/Facturacion.vue'),
       },
+      {
+        path: 'empresas',
+        name: 'Empresas',
+        component: () => import('@/views/Empresas/Empresas.vue')
+      }
     ],
   },
   {
@@ -27,7 +32,7 @@ const routes = [
     path: '/register',
     name: 'Register',
     component: () => import('@/views/Register/Register.vue')
-  }
+  },
 ]
 
 const router = createRouter({

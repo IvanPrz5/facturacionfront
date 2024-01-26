@@ -6,6 +6,7 @@ import { Cliente } from '@/class/Cliente';
 import { Concepto } from '@/class/Concepto';
 import { Comprobante } from '@/class/Comprobante';
 import { Impuesto } from '@/class/Impuesto';
+import { Empresa } from '@/class/Empresa';
 
 export const storeApp = defineStore('app', () => {
   const token = ref("");
@@ -16,6 +17,7 @@ export const storeApp = defineStore('app', () => {
   const cliente: Cliente | null = new Cliente();
   const concepto: Concepto | null = new Concepto();
   const impuesto: Impuesto | null = new Impuesto();
+  const empresa: Empresa | null = new Empresa();
   
   return{
     token, 
@@ -24,6 +26,7 @@ export const storeApp = defineStore('app', () => {
     comprobante,
     cliente,
     concepto,
-    impuesto
+    impuesto,
+    empresa
   }
 })

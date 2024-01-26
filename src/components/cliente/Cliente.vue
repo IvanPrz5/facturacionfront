@@ -2,6 +2,7 @@
   <v-card variant="tonal">
     <v-card-title class="d-flex">
       Cliente
+      <v-card-subtitle class="mt-2">  {{ clienteClass.nombre }} </v-card-subtitle>
       <v-spacer></v-spacer>
       <v-text-field class="pa-0 ma-0" density="compact" variant="filled" label="Buscar por Nombre o Rfc del cliente"
         hide-details append-inner-icon="mdi-magnify" v-model="nombreRfc" @click:append-inner="buscarPorNombreOrRfc"
@@ -90,10 +91,10 @@ async function buscarPorNombreOrRfc() {
   await axios
     .get(appStore.link + "/Clientes/byNombreOrRfc/" + nombreRfc.value.toUpperCase())
     .then((response) => {
-      if(response.data.length > 1){
+      if(response.data.length > 1) {
         listClientesDialog.value = true;
         desserts.value = response.data;
-      }else{
+      } else {
         clienteClass.nombre = response.data[0].nombre;
         clienteClass.rfc = response.data[0].rfc;
         clienteClass.domicilioFiscal = response.data[0].domicilioFiscal;
@@ -107,14 +108,14 @@ async function buscarPorNombreOrRfc() {
     });
 }
 
-function setDatosCliente() {
-  /* const { valid } = await clienteForm.value.validate();
-  if (valid) { */
+async function setDatosCliente() {
+  const { valid } = await clienteForm.value.validate();
+  if (valid) {
     arrayCliente.value = objetoConcepto();
     return arrayCliente.value;
-  /* } else {
+  } else {
     return null;
-  } */
+  }
 }
 
 function objetoConcepto() {

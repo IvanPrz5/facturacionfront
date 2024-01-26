@@ -1,102 +1,233 @@
 <template>
-    <v-card>
-      <v-card-title class="bg-primary"> Aplicar Impuesto </v-card-title>
-      <v-card-text class="mt-6">
-        <v-form>
-          <v-row no-gutters>
-            <v-col cols="6" class="pa-1">
-              <v-autocomplete variant="outlined" density="compact" label="Impuesto" :items="itemsImpuesto"
-                :item-title="titleAutoComplete" item-value="codigo" v-model="impuestoClass.codImpuesto"></v-autocomplete>
-            </v-col>
-            <v-col cols="6" class="pa-1">
-              <v-autocomplete variant="outlined" density="compact" label="Tipo Factor" :items="itemsTipoFactor"
-                item-title="codigo" item-value="codigo" v-model="impuestoClass.codTipoFactor"></v-autocomplete>
-            </v-col>
-            <v-col cols="4" class="pa-1">
-              <v-autocomplete variant="outlined" density="compact" label="Tasa o Cuota" :items="itemsTasaCuota"
-                item-title="descripcion" item-value="descripcion" v-model="impuestoClass.codTasaCuota"></v-autocomplete>
-            </v-col>
-            <v-col cols="4" class="pa-1">
-              <v-text-field ariant="outlined" density="compact" label="Importe"
-                v-model="impuestoClass.importe"></v-text-field>
-            </v-col>
-            <v-col cols="4" class="pa-1">
-              <v-text-field ariant="outlined" density="compact" label="Base" v-model="impuestoClass.base"></v-text-field>
-            </v-col>
-          </v-row>
-        </v-form>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <!-- <v-btn variant="tonal" color="red" @click="cerrarImpuesto">Cancelar</v-btn> -->
-        <v-btn variant="tonal" block color="success" @click="agregarImpuesto"> {{ btnText }} </v-btn>
-      </v-card-actions>
-    </v-card>
+  <v-card>
+    <v-card-title class="bg-primary"> Aplicar Impuesto </v-card-title>
+    <v-card-text>
+      <v-form ref="impuestoForm" fast-fail @submit.prevent>
+        <v-row no-gutters>
+          <v-col cols="12">
+            <v-radio-group v-model="isTrasladado">
+              <div class="d-flex">
+                <v-radio label="Impuesto Traslado" color="green" :value="true"></v-radio>
+                <v-radio label="Impuesto Retenido" color="warning" :value="false"></v-radio>
+              </div>
+            </v-radio-group>
+          </v-col>
+          <v-col cols="6" class="pa-1">
+            <v-autocomplete variant="outlined" density="compact" label="Impuesto" :items="itemsImpuesto"
+              :item-title="titleAutoComplete" item-value="codigo" v-model="impuestoClass.codImpuesto"
+              :rules="[rules.requerido]"></v-autocomplete>
+          </v-col>
+          <v-col cols="6" class="pa-1">
+            <v-autocomplete variant="outlined" density="compact" label="Tipo Factor" :items="itemsTipoFactor"
+              item-title="codigo" item-value="codigo" v-model="impuestoClass.codTipoFactor"
+              :rules="[rules.requerido]"></v-autocomplete>
+          </v-col>
+          <v-col cols="4" class="pa-1">
+            <v-autocomplete variant="outlined" density="compact" label="Tasa o Cuota" :items="itemsTasaCuota"
+              item-title="descripcion" item-value="descripcion" v-model="impuestoClass.codTasaCuota"
+              :rules="[rules.requerido]"></v-autocomplete>
+          </v-col>
+          <v-col cols="4" class="pa-1">
+            <v-text-field ariant="outlined" density="compact" label="Base" v-model="impuestoClass.base"
+              :rules="[rules.requerido]"></v-text-field>
+          </v-col>
+          <v-col cols="4" class="pa-1" v-if="impuestoClass.importe != 'NaN'">
+            <v-text-field ariant="outlined" density="compact" label="Importe" v-model="impuestoClass.importe"
+              :rules="[rules.requerido]" readonly></v-text-field>
+          </v-col>
+        </v-row>
+      </v-form>
+      <v-row no-gutters>
+        <div style="display: none;">{{ array }}</div>
+        <v-col v-if="desserts.length > 0" class="px-1" cols="6">
+          <v-btn block color="error" @click="cerrarImpuesto()">
+            Terminar
+          </v-btn>
+        </v-col>
+        <v-col class="px-1" cols="6">
+          <v-btn block color="indigo" @click="agregarImpuesto">
+            {{ btnText }}
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-card-text>
+  </v-card>
+  <v-data-table class="mt-2" v-if="desserts.length > 0 && propImpuesto == null" height="300" :headers="headers" :items="desserts"
+    :sort-by="[{ key: 'isTrasladado' }]">
+    <template v-slot:top>
+      <v-toolbar density="compact" color="primary">
+        <v-toolbar-title>Lista de Impuestos</v-toolbar-title>
+      </v-toolbar>
+    </template>
+    <template v-slot:item.codImpuesto="{ value }">
+      {{ codImpuesto(value) }}
+    </template>
+    <template v-slot:item.isTrasladado="{ value }">
+      <v-chip :color="getColor(value)">
+        {{ textImp = value ? 'T' : 'R' }}
+      </v-chip>
+    </template>
+    <template v-slot:item.actions="{ item }">
+      <v-btn variant="text" size="small" @click="eliminarItem(item)">
+        <v-icon size="medium"> mdi-delete </v-icon>
+      </v-btn>
+    </template>
+  </v-data-table>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
+import Rules from "@/class/Rules";
 
 const appStore = storeApp();
+const rules = new Rules();
 const impuestoClass = appStore.impuesto;
 const itemsImpuesto: any = ref([]);
 const itemsTipoFactor: any = ref([]);
 const itemsTasaCuota: any = ref([]);
+const impuestoForm: any = ref(null);
+
+const props = defineProps(["propImpuesto", "propImporte", "propTabla"]);
+const emit = defineEmits([
+  "closeImpuesto",
+  "actualizarImpuesto",
+  "setDatosImpuesto",
+]);
+
+const headers: any = ref([
+  { title: "Impuesto", key: "codImpuesto" },
+  { title: "Tasa Cuota", key: "codTasaCuota" },
+  { title: "Tipo Factor", key: "codTipoFactor" },
+  { title: "Base", key: "base" },
+  { title: "Importe", key: "importe" },
+  { title: "Tipo", key: "isTrasladado" },
+  {
+    title: "Actions",
+    key: "actions",
+    sortable: false,
+  },
+]);
+let desserts: any = ref([]);
 
 let btnText: any = ref("Agregar");
+let isTrasladado: any = ref(true);
+let auxImp: any = ref();
+let textImp: any = ref();
 
-const props = defineProps(["propImpuesto"]);  
-const emit = defineEmits(["closeImpuesto", "actualizarImpuesto", "setDatosImpuesto"]);
+watch(impuestoClass, (nuevoValor) => {
+  let aux = Number(nuevoValor.base) * Number(nuevoValor.codTasaCuota);
+  impuestoClass.importe = aux.toFixed(2);
+});
+
+const array = computed(() => {
+  // if(impuestoClass.codImpuesto != undefined)
+  if (impuestoClass.codImpuesto != undefined && impuestoClass.codTipoFactor != undefined) {
+    if (impuestoClass.codImpuesto == "001") {
+      auxImp.value = "ISR";
+    }
+    if (impuestoClass.codImpuesto == "002") {
+      auxImp.value = "IVA";
+    }
+    if (impuestoClass.codImpuesto == "003") {
+      auxImp.value = "IEPS";
+    }
+    impuestoClass.codTasaCuota = null;
+    getTasaCuota(auxImp.value);
+  }
+});
 
 onMounted(() => {
-  if(props.propImpuesto != null){
-    btnText.value = "Editar"
+  if (props.propImpuesto != null) {
+    btnText.value = "Editar";
     cargarDatos();
+  }
+  if (props.propImporte != null) {
+    impuestoClass.base = props.propImporte;
+  }
+  if (props.propTabla != null) {
+    desserts.value = props.propTabla;
+    console.log(desserts.value)
   }
   getImpuesto();
   getTipoFactor();
-  getTasaCuota();
-})
+  // getTasaCuota();
+});
+
+function getColor(item: any) {
+  if (item == false) return 'warning'
+  else return 'green'
+}
 
 function getImpuesto() {
-  axios.get(appStore.link + "/Impuesto/get")
+  axios
+    .get(appStore.link + "/Impuesto/get")
     .then((response) => {
       itemsImpuesto.value = response.data;
+      if (props.propImpuesto == null) {
+        impuestoClass.codImpuesto = response.data[1].codigo
+      }
     })
     .catch((e) => {
-      console.log("Fatal " + e)
-    })
+      console.log("Fatal " + e);
+    });
 }
 
 function getTipoFactor() {
-  axios.get(appStore.link + "/TipoFactor/get")
+  axios
+    .get(appStore.link + "/TipoFactor/get")
     .then((response) => {
       itemsTipoFactor.value = response.data;
+      if (props.propImpuesto == null) {
+        impuestoClass.codTipoFactor = response.data[0].codigo;
+      }
     })
     .catch((e) => {
-      console.log("Fatal " + e)
-    })
+      console.log("Fatal " + e);
+    });
 }
 
-function getTasaCuota() {
-  axios.get(appStore.link + "/TasaoCuota/get")
+function getTasaCuota(aux: any) {
+  axios
+    .get(
+      appStore.link +
+      "/TasaoCuota/byImpFac/" +
+      aux +
+      "/" +
+      impuestoClass.codTipoFactor
+    )
     .then((response) => {
-      itemsTasaCuota.value = response.data;
+      if (response.data.length == 0) {
+        itemsTasaCuota.value = [];
+      }
+      if (response.data.length == 1) {
+        impuestoClass.codTasaCuota = response.data[0].descripcion;
+        itemsTasaCuota.value = [];
+      }
+      if (response.data.length > 2) {
+        impuestoClass.codTasaCuota = response.data[1].descripcion;
+        itemsTasaCuota.value = response.data;
+      }
     })
     .catch((e) => {
-      console.log("Fatal " + e)
-    })
+      console.log("Fatal " + e);
+    });
 }
 
-function agregarImpuesto() {
-  let obj =  objetoImpuesto();
-  if (props.propImpuesto != null) {
-    emit("closeImpuesto");
-    emit("actualizarImpuesto", obj)
+async function agregarImpuesto() {
+  const { valid } = await impuestoForm.value.validate();
+  if (valid) {
+    let obj = objetoImpuesto();
+    if (props.propImpuesto != null) {
+      emit("closeImpuesto");
+      emit("actualizarImpuesto", obj);
+    } else {
+      desserts.value.push(obj);
+      emit("setDatosImpuesto", desserts.value);
+    }
   } else {
-    emit("setDatosImpuesto", obj)
+    emit("setDatosImpuesto", null);
   }
 }
 
@@ -104,20 +235,27 @@ function cargarDatos() {
   impuestoClass.codImpuesto = props.propImpuesto.codImpuesto;
   impuestoClass.codTipoFactor = props.propImpuesto.codTipoFactor;
   impuestoClass.codTasaCuota = props.propImpuesto.codTasaCuota;
-  impuestoClass.importe = props.propImpuesto.base;
-  impuestoClass.base = props.propImpuesto.importe;
+  impuestoClass.importe = props.propImpuesto.importe;
+  impuestoClass.base = props.propImpuesto.base;
+  impuestoClass.importe = props.propImpuesto.isTrasladado;
+  isTrasladado.value = props.propImpuesto.isTrasladado;
 }
 
-function objetoImpuesto(){
+function objetoImpuesto() {
   let obj = {
     codImpuesto: impuestoClass.codImpuesto,
     codTipoFactor: impuestoClass.codTipoFactor,
     codTasaCuota: impuestoClass.codTasaCuota,
     base: impuestoClass.base,
-    importe: impuestoClass.importe
-  }
+    importe: impuestoClass.importe,
+    isTrasladado: isTrasladado.value,
+  };
 
   return obj;
+}
+
+function eliminarItem(item: any) {
+  desserts.value.splice(item, 1)
 }
 
 function cerrarImpuesto() {
@@ -128,7 +266,19 @@ function titleAutoComplete(item: any) {
   return item.codigo + " - " + item.descripcion;
 }
 
+function codImpuesto(codImpuesto: any) {
+  if (codImpuesto == "001") {
+    return "001 - ISR";
+  }
+  if (codImpuesto == "002") {
+    return "002 - IVA";
+  }
+  if (codImpuesto == "003") {
+    return "003 - IEPS";
+  }
+}
+
 defineExpose({
   cargarDatos,
-})
+});
 </script>

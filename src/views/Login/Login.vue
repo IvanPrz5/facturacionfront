@@ -36,14 +36,14 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeApp } from '@/store/app';
 import axios from 'axios';
-import Usuario from '@/class/Usuario'
+import Usuario from '@/class/Usuario';
 import Rules from '@/class/Rules';
 
 const appStore = storeApp();
 const router = useRouter();
 const rules = new Rules();
-// const emitter: any = inject("emitter");
 const formLogin: any = ref(null);
+
 let visible: any = ref(false);
 let snack: any = ref(false);
 let credenciales: any = ref({
@@ -60,7 +60,7 @@ async function login() {
         localStorage.setItem("token", response.data.data.token);
         appStore.usuario = <Usuario> response.data.data.usuario[0];
         localStorage.setItem("usuario", JSON.stringify(<Usuario>response.data.data.usuario[0]));
-        router.push({ path: "/home" });
+        router.push({ path: "/empresas" });
       })
       .catch((error) => {
         snack.value = true;

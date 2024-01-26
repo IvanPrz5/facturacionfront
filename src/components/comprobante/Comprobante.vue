@@ -2,6 +2,13 @@
   <v-card variant="tonal">
     <v-card-title class="d-flex">
       Comprobante
+      <v-card-subtitle
+        v-if="comprobanteClass.idTipoComprobante != null && comprobanteClass.idFormaPago != null && comprobanteClass.idMetodoPago != null"
+        class="mt-2">
+        Tipo: {{ comprobanteClass.idTipoComprobante }} ,
+        Forma de Pago: {{ comprobanteClass.idFormaPago }} ,
+        Metodo de Pago: {{ comprobanteClass.idMetodoPago }}
+      </v-card-subtitle>
       <v-spacer></v-spacer>
       <!-- <v-btn @click="agregarConcepto" color="success">
         <v-icon size="x-large">mdi-plus</v-icon>
@@ -23,25 +30,30 @@
             </v-col>
             <v-col cols="9" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Exportación" :items="itemsExportacion"
-                :item-title="titleAutoComplete" item-value="codigo"
-                v-model="comprobanteClass.idExportacion" :rules="[rules.requerido]"></v-autocomplete>
+                :item-title="titleAutoComplete" item-value="codigo" v-model="comprobanteClass.idExportacion"
+                :rules="[rules.requerido]"></v-autocomplete>
             </v-col>
-            <v-col class="pa-1">
+            <v-col cols="6" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Forma de Pago" :items="itemsFormaPago"
-                :item-title="titleAutoComplete" item-value="codigo"
-                v-model="comprobanteClass.idFormaPago" :rules="[rules.requerido]"></v-autocomplete>
+                :item-title="titleAutoComplete" item-value="codigo" v-model="comprobanteClass.idFormaPago"
+                :rules="[rules.requerido]"></v-autocomplete>
             </v-col>
-            <v-col class="pa-1">
+            <v-col cols="6" class="pa-1">
               <v-autocomplete variant="outlined" density="compact" label="Metodo de Pago" :items="itemsMetodoPago"
-                :item-title="titleAutoComplete" item-value="codigo"
-                v-model="comprobanteClass.idMetodoPago" :rules="[rules.requerido]"></v-autocomplete>
+                :item-title="titleAutoComplete" item-value="codigo" v-model="comprobanteClass.idMetodoPago"
+                :rules="[rules.requerido]"></v-autocomplete>
+            </v-col>
+            <v-col cols="6" class="pa-1">
+              <v-text-field variant="outlined" density="compact" label="Folio" ></v-text-field>
+            </v-col>
+            <v-col cols="6" class="pa-1">
+              <v-text-field variant="outlined" density="compact" label="Serie" ></v-text-field>
             </v-col>
           </v-row>
         </v-form>
       </div>
     </v-expand-transition>
   </v-card>
-  
 </template>
 
 <script lang="ts" setup>
@@ -115,15 +127,14 @@ function getMetodoPago() {
     });
 }
 
-function setDatosComprobante(){
-  /* const { valid } = comprobanteForm.value.validate();
-  if(valid){ */
+async function setDatosComprobante() {
+  const { valid } = await comprobanteForm.value.validate();
+  if(valid){
     arrayComprobante.value = comprobanteClass;
-    console.log(arrayComprobante.value)
     return arrayComprobante.value;
-  /* }else{
+  }else{
     return null;
-  } */
+  }
 }
 
 function agregarConcepto() {

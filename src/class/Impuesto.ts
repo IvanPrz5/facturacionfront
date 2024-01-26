@@ -4,5 +4,4 @@ export class Impuesto {
     codTasaCuota: any;
     base: any;
     importe: any;
-    isTrasladado: any;
 }

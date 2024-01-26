@@ -7,4 +7,5 @@ export class Comprobante{
     subTotal: any;
     descuento: any;
     total: any;
+    isTimbrado: any;
 }
