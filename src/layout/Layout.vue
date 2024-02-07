@@ -21,8 +21,8 @@
       <v-divider></v-divider>
       <v-list density="compact" nav>
         <v-list-item prepend-icon="mdi-text-box-plus" title="Facturación" to="/facturacion"></v-list-item>
+        <v-list-item prepend-icon="mdi-text-box-multiple" title="Mis Facturas" to="/facturas"></v-list-item>
         <v-list-item prepend-icon="mdi-account-multiple" title="Shared with me" value="shared" to="/empresas"></v-list-item>
-        <v-list-item prepend-icon="mdi-star" title="Starred" value="starred"></v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-main>

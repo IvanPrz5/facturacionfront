@@ -115,8 +115,8 @@ let codClaveUnidad: any = ref();
 const snack: any = ref(false);
 let snackColor = "";
 let msg: String = "";
-
 let timeMensaje: any = ref();
+
 let arrayImpuestos: any = ref([]);
 
 let btnText: any = ref("Agregar");
@@ -273,7 +273,7 @@ function titleAutoComplete(item: any) {
 function mostrarSnack(color: any, msgSnack: any, time: any) {
   snackColor = color;
   msg = msgSnack;
-  time = timeMensaje;
+  timeMensaje = time;
   snack.value = true;
 }
 

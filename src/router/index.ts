@@ -20,6 +20,11 @@ const routes = [
         path: 'empresas',
         name: 'Empresas',
         component: () => import('@/views/Empresas/Empresas.vue')
+      },
+      {
+        path: 'facturas',
+        name: 'Facturas',
+        component: () => import('@/views/Facturas/Facturas.vue')
       }
     ],
   },

@@ -25,6 +25,15 @@
       </v-card>
     </v-col>
   </v-row>
+  <div style="position: fixed; right: 40px; bottom: 40px;">
+    <v-btn elevation="2" size="large" color="indigo" icon style="margin-top: 20px;" @click="aggEmpresa">
+      <v-icon>mdi-plus</v-icon>
+      <v-tooltip activator="parent" location="end">Crear Empresa</v-tooltip>
+    </v-btn>
+  </div>
+  <v-dialog v-model="crearEmpresa" width="900">
+    <CrearEmpresa @actualizarEmpresas="getEmpresas()"/>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -33,12 +42,14 @@ import { storeApp } from "../../store/app";
 import { useRouter } from "vue-router";
 import { Empresa } from "@/class/Empresa";
 import axios from "axios";
+import CrearEmpresa from "./CrearEmpresa.vue";
 
 const emit = defineEmits(["cerrarEmpresa"]);
 
 const appStore = storeApp();
 const router = useRouter();
 let empresas: any = ref([]);
+let crearEmpresa: any = ref(false);
 
 onMounted(() => {
   getEmpresas();
@@ -59,8 +70,13 @@ function selecEmpresa(item: any) {
   localStorage.setItem("empresa", JSON.stringify(<Empresa>item));
   appStore.empresa = <Empresa>item;
   router.push({ path: "/facturacion" });
-  if(appStore.empresa != null){
+  if (appStore.empresa != null) {
     emit("cerrarEmpresa")
   }
+}
+
+
+function aggEmpresa(){
+  crearEmpresa.value = true;
 }
 </script>

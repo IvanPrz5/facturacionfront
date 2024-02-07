@@ -151,7 +151,8 @@
       </v-col>
       <v-col cols="12" class="d-flex" v-if="arrayConceptos.length > 0">
         <!-- <v-spacer></v-spacer> -->
-        <v-btn color="success" @click="generarFactura"> Generar Factura </v-btn>
+        <v-btn color="warning" @click="timbrarDespues"> Timbrar Despues </v-btn>
+        <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
         <v-spacer></v-spacer>
         <div class="d-flex flex-column">
           <div>SubTotal : {{ subTotal }}</div>
@@ -220,6 +221,7 @@ let propTabla: any = ref();
 
 let conceptoIndex: any = ref(-1);
 let impuestoIndex: any = ref(-1);
+let despues: any = ref();
 
 const snack: any = ref(false);
 let snackColor = "";
@@ -256,13 +258,19 @@ watch(arrayConceptos.value, (nuevoValor) => {
 
 async function generarFactura() {
   // dialog.value = true;
+  
   let datosComprobante = await getDatosComprobante();
   let datosCliente = await getDatosCliente();
   if (datosCliente != null && datosComprobante != null) {
     datosFactura.value.datosConcepto = arrayConceptos.value;
-    console.log(datosFactura.value.datosConcepto)
+    if(despues.value == -1){
+      datosFactura.value.datosComprobante.isTimbrado = false;
+    }
+
+  datosFactura.value.idEmpresa = appStore.empresa.id;
+  console.log(datosFactura.value)
   await axios
-      .post(appStore.link + "/Facturacion/crearXml", datosFactura.value)
+      .post(appStore.link + "/Facturacion/timbrarXml", datosFactura.value)
       .then((response) => {
         if (response.data.status == 0) {
           dialog.value = false;
@@ -278,6 +286,16 @@ async function generarFactura() {
   } else {
     console.log("No dejar campos vacios")
   }
+}
+
+function timbrar(){
+  despues.value = 1;
+  generarFactura();
+}
+
+function timbrarDespues(){
+  despues.value = -1;
+  generarFactura();
 }
 
 /* async function descargarXml() {
@@ -339,6 +357,7 @@ function actualizar(item: any) {
 
 function eliminarConcepto(item: any) {
   arrayConceptos.value.splice(item, 1);
+  console.log(item);
 }
 
 function cerrarConcepto() {
@@ -350,6 +369,8 @@ function crearImpuesto(item: any) {
   propImpuesto.value = null;
   if (item.datosImpuesto.length > 0) {
     propTabla.value = item.datosImpuesto;
+  }else{
+    propTabla.value = [];
   }
   propImporte.value = item.importe;
   conceptoIndex.value = arrayConceptos.value.indexOf(item);
@@ -357,7 +378,19 @@ function crearImpuesto(item: any) {
 
 function getDatosImpuestos(item: any) {
   if (item != null) {
+    
+    let numTrasladados = 0;
+    let numRetenciones = 0;
+    for(let i=0; i<item.length; i++){
+      if(item[i].isTrasladado == true){
+        numTrasladados++
+      }else{
+        numRetenciones++;
+      }
+    }
     arrayConceptos.value[conceptoIndex.value].datosImpuesto = item;
+    arrayConceptos.value[conceptoIndex.value].numTrasladados = numTrasladados;
+    arrayConceptos.value[conceptoIndex.value].numRetenciones = numRetenciones;
   }
 }
 
