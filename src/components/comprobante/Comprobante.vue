@@ -44,10 +44,10 @@
                 :rules="[rules.requerido]"></v-autocomplete>
             </v-col>
             <v-col cols="6" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Folio" ></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="Folio" v-model="comprobanteClass.folio"></v-text-field>
             </v-col>
             <v-col cols="6" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Serie" ></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="Serie" v-model="comprobanteClass.serie"></v-text-field>
             </v-col>
           </v-row>
         </v-form>
@@ -130,6 +130,7 @@ function getMetodoPago() {
 async function setDatosComprobante() {
   const { valid } = await comprobanteForm.value.validate();
   if(valid){
+    comprobanteClass.lugarExpedicion = appStore.empresa.codPostal;
     arrayComprobante.value = comprobanteClass;
     return arrayComprobante.value;
   }else{

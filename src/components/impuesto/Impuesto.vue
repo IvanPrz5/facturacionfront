@@ -148,7 +148,6 @@ onMounted(() => {
   }
   if (props.propTabla != null) {
     desserts.value = props.propTabla;
-    console.log(desserts.value)
   }
   getImpuesto();
   getTipoFactor();

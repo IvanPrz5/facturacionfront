@@ -3,4 +3,5 @@ export class Empresa {
     nombre: any;
     rfc: any;
     logo: any;
+    codPostal: any;
 }

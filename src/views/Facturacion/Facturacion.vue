@@ -268,7 +268,6 @@ async function generarFactura() {
     }
 
   datosFactura.value.idEmpresa = appStore.empresa.id;
-  console.log(datosFactura.value)
   await axios
       .post(appStore.link + "/Facturacion/timbrarXml", datosFactura.value)
       .then((response) => {
@@ -297,25 +296,6 @@ function timbrarDespues(){
   despues.value = -1;
   generarFactura();
 }
-
-/* async function descargarXml() {
-  await axios({
-    url: appStore.link + "/Recursos/descargarXml/" + uuid,
-    method: "GET",
-    responseType: "blob",
-  })
-    .then((response: any) => {
-      let url = window.URL.createObjectURL(new Blob([response.data]));
-      let link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", uuid + ".xml");
-      document.body.appendChild(link);
-      link.click();
-    })
-    .catch((e: any) => {
-      console.log("Buscar folio  " + e);
-    });
-} */
 
 async function getDatosCliente() {
   return datosFactura.value.datosReceptor = await cliente.value?.setDatosCliente();
