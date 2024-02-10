@@ -1,7 +1,7 @@
 export class Impuesto {
-    codImpuesto: any;
-    codTipoFactor: any;
-    codTasaCuota: any;
+    impuesto: any;
+    tipoFactor: any;
+    tasaCuota: any;
     base: any;
     importe: any;
 }

@@ -31,14 +31,14 @@
       <v-card-text>
         <v-data-table v-model:expanded="expanded" :page.sync="page" :headers="headers" :items="facturas"
           :loading="loading" :items-per-page="itemsPerPage" show-expand>
-          <template v-slot:item.tipoComprobante="{ value }">
+          <template v-slot:item.datosComprobante.idTipoComprobante="{ value }">
             <v-chip :color="getColor(value)">
               {{ value }}
             </v-chip>
           </template>
           <template v-slot:item.actions="{ item }">
             <!-- @vue-ignore -->
-            <div v-if="item.isTimbrado == false">
+            <div v-if="item.datosComprobante.isTimbrado == false">
               <v-btn class="mr-2" color="success" variant="tonal" @click="confirmarTimbrar(item)">
                 <v-icon size="large"> mdi-bell </v-icon>
               </v-btn>
@@ -72,7 +72,7 @@
           </template>
           <template v-slot:expanded-row="{ columns, item }">
             <!-- @vue-ignore -->
-            <tr v-for="i in item.conceptosList">
+            <tr v-for="i in item.datosConcepto">
               <td class="bg-grey-lighten-3" :colspan="columns.length">
                 <div class="d-flex">
                   <div>Descripcion: {{ i.descripcion }} -</div>
@@ -105,7 +105,7 @@
         <v-icon class="mb-5" :color="colorBtn" icon="mdi-alert-decagram-outline" size="112"></v-icon>
         <h2 class="text-h5 mb-6">{{ btnText }} ?</h2>
         <p class="mb-4 text-medium-emphasis text-body-4">
-          {{ itemCancelar.uuid }}
+          {{ itemCancelar.datosComprobante.uuid }}
         </p>
         <v-divider class="mb-4"></v-divider>
         <div class="text-end">
@@ -122,19 +122,20 @@
 import { ref, computed } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
+import { SourceTextModule } from "vm";
+import { domainToASCII } from "url";
 
 const appStore = storeApp();
 
 const headers: any = ref([
-  { title: "ID", key: "id" },
-  // { title: "Emisor", key: "idEmisor.nombre", sortable: false },
-  { title: "Receptor", key: "idReceptor.nombre", sortable: false },
-  { title: "Fecha", key: "fecha" },
-  { title: "Comprobante", key: "tipoComprobante", align: "center" },
-  { title: "SubTotal", key: "subTotal", align: "center" },
-  { title: "Descuento", key: "descuento", align: "center" },
-  { title: "Total", key: "total", align: "center" },
-  { title: "UUID", key: "uuid" },
+  { title: "ID", key: "datosComprobante.id" },
+  { title: "Receptor", key: "datosReceptor.nombre", sortable: false },
+  // { title: "Fecha", key: "datosComprobante.fecha" },
+  { title: "Comprobante", key: "datosComprobante.idTipoComprobante", align: "center" },
+  { title: "SubTotal", key: "datosComprobante.subTotal", align: "center" },
+  { title: "Descuento", key: "datosComprobante.descuento", align: "center" },
+  { title: "Total", key: "datosComprobante.total", align: "center" },
+  { title: "UUID", key: "datosComprobante.uuid" },
   { title: "Actions", key: "actions", sortable: false },
 ]);
 let facturas: any = ref([]);
@@ -229,7 +230,21 @@ function confirmarTimbrar(item: any) {
 }
 
 async function cancelarTimbrarFactura() {
-  if (btnText.value == "CANCELAR FACTURA") {
+  let contador = 0;
+  itemCancelar.value.datosConcepto.forEach((a: any, b: any) => {
+    itemCancelar.value.datosConcepto[b].datosImpuesto.forEach((c: any, d: any) => {
+      if(itemCancelar.value.datosConcepto[b].datosImpuesto[d].isTrasladado == true){
+        contador++;
+      }
+    });
+  });
+  
+  // arrayConceptos.value[conceptoIndex.value].datosImpuesto = item;
+  // arrayConceptos.value[conceptoIndex.value].numTrasladados = numTrasladados;
+  // arrayConceptos.value[conceptoIndex.value].numRetenciones = numRetenciones;
+
+
+  /* if (btnText.value == "CANCELAR FACTURA") {
     axios
       .post(appStore.link + "/Facturacion/cancelarXml", itemCancelar.value)
       .then((response) => {
@@ -259,12 +274,12 @@ async function cancelarTimbrarFactura() {
       .catch((e) => {
         console.log("Fatal" + e);
       });
-  }
+  } */
 }
 
 async function descargarPdf(item: any) {
   await axios({
-    url: appStore.link + "/Xml/descargarPdf/" + item.uuid + "/" + appStore.empresa.id,
+    url: appStore.link + "/Xml/descargarPdf/" + item.datosComprobante.uuid + "/" + appStore.empresa.id,
     method: "GET",
     responseType: "blob",
   })
@@ -272,7 +287,7 @@ async function descargarPdf(item: any) {
       let url = window.URL.createObjectURL(new Blob([response.data]));
       let link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", item.uuid + ".pdf");
+      link.setAttribute("download", item.datosComprobante.uuid + ".pdf");
       document.body.appendChild(link);
       link.click();
     })
@@ -283,7 +298,7 @@ async function descargarPdf(item: any) {
 
 async function descargarXml(item: any) {
   await axios({
-    url: appStore.link + "/Xml/descargarXml/" + item.uuid,
+    url: appStore.link + "/Xml/descargarXml/" + item.datosComprobante.uuid,
     method: "GET",
     responseType: "blob",
   })
@@ -291,7 +306,7 @@ async function descargarXml(item: any) {
       let url = window.URL.createObjectURL(new Blob([response.data]));
       let link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", item.uuid + ".xml");
+      link.setAttribute("download", item.datosComprobante.uuid + ".xml");
       document.body.appendChild(link);
       link.click();
     })
@@ -302,7 +317,7 @@ async function descargarXml(item: any) {
 
 async function descargarCvv(item: any) {
   await axios({
-    url: appStore.link + "/Xml/descargarCvv/" + item.uuid,
+    url: appStore.link + "/Xml/descargarCvv/" + item.datosComprobante.uuid,
     method: "GET",
     responseType: "blob",
   })
@@ -310,7 +325,7 @@ async function descargarCvv(item: any) {
       let url = window.URL.createObjectURL(new Blob([response.data]));
       let link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", item.uuid + ".png");
+      link.setAttribute("download", item.datosComprobante.uuid + ".png");
       document.body.appendChild(link);
       link.click();
     })

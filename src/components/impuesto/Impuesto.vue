@@ -14,17 +14,17 @@
           </v-col>
           <v-col cols="6" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Impuesto" :items="itemsImpuesto"
-              :item-title="titleAutoComplete" item-value="codigo" v-model="impuestoClass.codImpuesto"
+              :item-title="titleAutoComplete" item-value="codigo" v-model="impuestoClass.impuesto"
               :rules="[rules.requerido]"></v-autocomplete>
           </v-col>
           <v-col cols="6" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Tipo Factor" :items="itemsTipoFactor"
-              item-title="codigo" item-value="codigo" v-model="impuestoClass.codTipoFactor"
+              item-title="codigo" item-value="codigo" v-model="impuestoClass.tipoFactor"
               :rules="[rules.requerido]"></v-autocomplete>
           </v-col>
           <v-col cols="4" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Tasa o Cuota" :items="itemsTasaCuota"
-              item-title="descripcion" item-value="descripcion" v-model="impuestoClass.codTasaCuota"
+              item-title="descripcion" item-value="descripcion" v-model="impuestoClass.tasaCuota"
               :rules="[rules.requerido]"></v-autocomplete>
           </v-col>
           <v-col cols="4" class="pa-1">
@@ -59,7 +59,7 @@
         <v-toolbar-title>Lista de Impuestos</v-toolbar-title>
       </v-toolbar>
     </template>
-    <template v-slot:item.codImpuesto="{ value }">
+    <template v-slot:item.impuesto="{ value }">
       {{ codImpuesto(value) }}
     </template>
     <template v-slot:item.isTrasladado="{ value }">
@@ -97,9 +97,9 @@ const emit = defineEmits([
 ]);
 
 const headers: any = ref([
-  { title: "Impuesto", key: "codImpuesto" },
-  { title: "Tasa Cuota", key: "codTasaCuota" },
-  { title: "Tipo Factor", key: "codTipoFactor" },
+  { title: "Impuesto", key: "impuesto" },
+  { title: "Tasa Cuota", key: "tasaCuota" },
+  { title: "Tipo Factor", key: "tipoFactor" },
   { title: "Base", key: "base" },
   { title: "Importe", key: "importe" },
   { title: "Tipo", key: "isTrasladado" },
@@ -117,23 +117,23 @@ let auxImp: any = ref();
 let textImp: any = ref();
 
 watch(impuestoClass, (nuevoValor) => {
-  let aux = Number(nuevoValor.base) * Number(nuevoValor.codTasaCuota);
+  let aux = Number(nuevoValor.base) * Number(nuevoValor.tasaCuota);
   impuestoClass.importe = aux.toFixed(2);
 });
 
 const array = computed(() => {
   // if(impuestoClass.codImpuesto != undefined)
-  if (impuestoClass.codImpuesto != undefined && impuestoClass.codTipoFactor != undefined) {
-    if (impuestoClass.codImpuesto == "001") {
+  if (impuestoClass.impuesto != undefined && impuestoClass.tipoFactor != undefined) {
+    if (impuestoClass.impuesto == "001") {
       auxImp.value = "ISR";
     }
-    if (impuestoClass.codImpuesto == "002") {
+    if (impuestoClass.impuesto == "002") {
       auxImp.value = "IVA";
     }
-    if (impuestoClass.codImpuesto == "003") {
+    if (impuestoClass.impuesto == "003") {
       auxImp.value = "IEPS";
     }
-    impuestoClass.codTasaCuota = null;
+    impuestoClass.tasaCuota = null;
     getTasaCuota(auxImp.value);
   }
 });
@@ -165,7 +165,7 @@ function getImpuesto() {
     .then((response) => {
       itemsImpuesto.value = response.data;
       if (props.propImpuesto == null) {
-        impuestoClass.codImpuesto = response.data[1].codigo
+        impuestoClass.impuesto = response.data[1].codigo
       }
     })
     .catch((e) => {
@@ -179,7 +179,7 @@ function getTipoFactor() {
     .then((response) => {
       itemsTipoFactor.value = response.data;
       if (props.propImpuesto == null) {
-        impuestoClass.codTipoFactor = response.data[0].codigo;
+        impuestoClass.tipoFactor = response.data[0].codigo;
       }
     })
     .catch((e) => {
@@ -194,18 +194,18 @@ function getTasaCuota(aux: any) {
       "/TasaoCuota/byImpFac/" +
       aux +
       "/" +
-      impuestoClass.codTipoFactor
+      impuestoClass.tipoFactor
     )
     .then((response) => {
       if (response.data.length == 0) {
         itemsTasaCuota.value = [];
       }
       if (response.data.length == 1) {
-        impuestoClass.codTasaCuota = response.data[0].descripcion;
+        impuestoClass.tasaCuota = response.data[0].descripcion;
         itemsTasaCuota.value = [];
       }
       if (response.data.length > 2) {
-        impuestoClass.codTasaCuota = response.data[1].descripcion;
+        impuestoClass.tasaCuota = response.data[1].descripcion;
         itemsTasaCuota.value = response.data;
       }
     })
@@ -231,9 +231,9 @@ async function agregarImpuesto() {
 }
 
 function cargarDatos() {
-  impuestoClass.codImpuesto = props.propImpuesto.codImpuesto;
-  impuestoClass.codTipoFactor = props.propImpuesto.codTipoFactor;
-  impuestoClass.codTasaCuota = props.propImpuesto.codTasaCuota;
+  impuestoClass.impuesto = props.propImpuesto.impuesto;
+  impuestoClass.tipoFactor = props.propImpuesto.tipoFactor;
+  impuestoClass.tasaCuota = props.propImpuesto.tasaCuota;
   impuestoClass.importe = props.propImpuesto.importe;
   impuestoClass.base = props.propImpuesto.base;
   impuestoClass.importe = props.propImpuesto.isTrasladado;
@@ -242,9 +242,9 @@ function cargarDatos() {
 
 function objetoImpuesto() {
   let obj = {
-    codImpuesto: impuestoClass.codImpuesto,
-    codTipoFactor: impuestoClass.codTipoFactor,
-    codTasaCuota: impuestoClass.codTasaCuota,
+    impuesto: impuestoClass.impuesto,
+    tipoFactor: impuestoClass.tipoFactor,
+    tasaCuota: impuestoClass.tasaCuota,
     base: impuestoClass.base,
     importe: impuestoClass.importe,
     isTrasladado: isTrasladado.value,

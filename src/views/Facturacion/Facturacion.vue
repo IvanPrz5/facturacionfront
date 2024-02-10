@@ -82,14 +82,14 @@
                           }}</v-list-item-subtitle>
                         </v-col>
                         <v-col cols="9">
-                          <v-list-item :title="codImpuesto(j.codImpuesto)">
+                          <v-list-item :title="codImpuesto(j.impuesto)">
                             <div class="d-flex">
                               <v-list-item-subtitle>Importe : {{ j.importe }}</v-list-item-subtitle>
                               <v-list-item-subtitle class="px-2">Base : {{ j.base }}</v-list-item-subtitle>
                               <v-list-item-subtitle class="px-2">Tipo Factor :
-                                {{ j.codTipoFactor }}</v-list-item-subtitle>
+                                {{ j.tipoFactor }}</v-list-item-subtitle>
                               <v-list-item-subtitle class="px-2">Tasa ó Cuota :
-                                {{ j.codTasaCuota }}</v-list-item-subtitle>
+                                {{ j.tasaCuota }}</v-list-item-subtitle>
                             </div>
                           </v-list-item>
                         </v-col>
@@ -119,15 +119,15 @@
                           }}</v-list-item-subtitle>
                         </v-col>
                         <v-col cols="9">
-                          <v-list-item :title="codImpuesto(j.codImpuesto)">
+                          <v-list-item :title="codImpuesto(j.impuesto)">
                             <div class="d-flex">
                               <v-list-item-subtitle v-if="!j.isTrasladado">Importe : {{ j.importe
                               }}</v-list-item-subtitle>
                               <v-list-item-subtitle class="px-2">Base : {{ j.base }}</v-list-item-subtitle>
                               <v-list-item-subtitle class="px-2">Tipo Factor :
-                                {{ j.codTipoFactor }}</v-list-item-subtitle>
+                                {{ j.tipoFactor }}</v-list-item-subtitle>
                               <v-list-item-subtitle class="px-2">Tasa ó Cuota :
-                                {{ j.codTasaCuota }}</v-list-item-subtitle>
+                                {{ j.tasaCuota }}</v-list-item-subtitle>
                             </div>
                           </v-list-item>
                         </v-col>
@@ -258,7 +258,6 @@ watch(arrayConceptos.value, (nuevoValor) => {
 
 async function generarFactura() {
   // dialog.value = true;
-  
   let datosComprobante = await getDatosComprobante();
   let datosCliente = await getDatosCliente();
   if (datosCliente != null && datosComprobante != null) {
@@ -268,6 +267,7 @@ async function generarFactura() {
     }
 
   datosFactura.value.idEmpresa = appStore.empresa.id;
+  console.log(datosFactura.value);
   await axios
       .post(appStore.link + "/Facturacion/timbrarXml", datosFactura.value)
       .then((response) => {
@@ -326,7 +326,6 @@ function editarConcepto(item: any) {
   showConcepto.value = true;
   propConcepto.value = item;
   conceptoIndex.value = arrayConceptos.value.indexOf(item);
-  console.log(item);
 }
 
 function actualizar(item: any) {
@@ -337,7 +336,6 @@ function actualizar(item: any) {
 
 function eliminarConcepto(item: any) {
   arrayConceptos.value.splice(item, 1);
-  console.log(item);
 }
 
 function cerrarConcepto() {
@@ -348,6 +346,7 @@ function crearImpuesto(item: any) {
   dialogImpuesto.value = true;
   propImpuesto.value = null;
   if (item.datosImpuesto.length > 0) {
+    console.log(item.datosImpuesto)
     propTabla.value = item.datosImpuesto;
   }else{
     propTabla.value = [];
@@ -363,7 +362,8 @@ function getDatosImpuestos(item: any) {
     let numRetenciones = 0;
     for(let i=0; i<item.length; i++){
       if(item[i].isTrasladado == true){
-        numTrasladados++
+        numTrasladados++;
+        console.log(numTrasladados)
       }else{
         numRetenciones++;
       }
@@ -376,6 +376,7 @@ function getDatosImpuestos(item: any) {
 
 function editarImpuesto(imp: any, concep: any) {
   dialogImpuesto.value = true;
+  console.log(imp)
   propImpuesto.value = imp;
   propImporte.value = null;
   conceptoIndex.value = arrayConceptos.value.indexOf(concep);
