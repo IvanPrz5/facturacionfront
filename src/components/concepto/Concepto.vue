@@ -56,10 +56,10 @@
               :item-title="titleAutoComplete" item-value="codigo" v-model="conceptoClass.idObjetoImp"
               :rules="[rules.requerido]"></v-autocomplete>
           </v-col>
-          <!-- <v-col cols="4">
-            <v-btn variant="tonal" color="info">Guardar como precargado</v-btn>
-          </v-col> -->
-          <v-col cols="12 mb-4">
+          <v-col cols="4 mb-4">
+            <v-btn variant="tonal" color="info" @click="guardarPrecargado">Guardar como precargado</v-btn>
+          </v-col>
+          <v-col cols="8 mb-4">
             <v-btn variant="tonal" block color="success" @click="agregarConcepto">
               {{ btnText }}
             </v-btn>
@@ -88,7 +88,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
 import Rules from "@/class/Rules";
@@ -134,7 +134,7 @@ let auxImp = computed(() => {
 
 onMounted(() => {
   if (props.propConcepto != null) {
-    btnText.value = "Editar"
+    btnText.value = "Editar";
     cargarDatos();
   }
   getObjetoImp();
@@ -147,7 +147,6 @@ async function agregarConcepto() {
     if (props.propConcepto != null) {
       emit("closeConcepto");
       emit("actualizar", obj);
-      console.log(obj);
     } else {
       emit("setDatosConcepto", obj);
     }
@@ -223,7 +222,7 @@ function getEmitClaveUnidad(item: any) {
 }
 
 function cargarDatos() {
-  conceptoClass.idClaveProdServ = props.propConcepto.claveProdServDesc;
+  conceptoClass.idClaveProdServ = props.propConcepto.idClaveProdServ + ".- " + props.propConcepto.claveProdServDesc;
   // conceptoClass.claveProdServDesc = props.propConcepto.claveProdServDesc;
   conceptoClass.idClaveUnidad = props.propConcepto.idClaveUnidad + ".- " + props.propConcepto.unidad;
   // conceptoClass.unidad = props.propConcepto.unidad;
@@ -237,11 +236,12 @@ function cargarDatos() {
 
 function objetoConcepto() {
   let codClaveProdServ = conceptoClass.idClaveProdServ.split(".");
+  let prodServ = codClaveProdServ[1].replace("- ", "");
   let codClaveUnidad = conceptoClass.idClaveUnidad.split(".");
   let unidad2 = codClaveUnidad[1].replace("- ", "");
   let obj = {
     idClaveProdServ: codClaveProdServ[0],
-    claveProdServDesc: conceptoClass.idClaveProdServ,
+    claveProdServDesc: prodServ,
     idClaveUnidad: codClaveUnidad[0],
     unidad: unidad2,
     cantidad: conceptoClass.cantidad,
@@ -262,7 +262,6 @@ function objetoConcepto() {
   if(props.propConcepto != null){
     obj.datosImpuesto = props.propConcepto.datosImpuesto;
   }
-
   return obj;
 }
 
@@ -275,6 +274,17 @@ function mostrarSnack(color: any, msgSnack: any, time: any) {
   msg = msgSnack;
   timeMensaje = time;
   snack.value = true;
+}
+
+function guardarPrecargado(){
+  console.log("Guardad Precargado");
+  axios.post(appStore.link + "/ConceptosPrecargados/add")
+    .then((response) => {
+      console.log(response)
+    })
+    .catch((e) => {
+      console.log("Error al guardar precargado " + e)
+    })
 }
 
 defineExpose({

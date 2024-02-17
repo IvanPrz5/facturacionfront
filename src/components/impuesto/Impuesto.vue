@@ -52,8 +52,8 @@
       </v-row>
     </v-card-text>
   </v-card>
-  <v-data-table class="mt-2" v-if="desserts.length > 0 && propImpuesto == null" height="300" :headers="headers" :items="desserts"
-    :sort-by="[{ key: 'isTrasladado' }]">
+  <v-data-table class="mt-2" v-if="desserts.length > 0 && propImpuesto == null" height="300" :headers="headers"
+    :items="desserts" :sort-by="[{ key: 'isTrasladado' }]">
     <template v-slot:top>
       <v-toolbar density="compact" color="primary">
         <v-toolbar-title>Lista de Impuestos</v-toolbar-title>

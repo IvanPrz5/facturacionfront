@@ -63,17 +63,20 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, onMounted, inject } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
 import AñadirCliente from "./AñadirCliente.vue";
 import ListClientes from "./ListClientes.vue";
 import Rules from "@/class/Rules";
 
+const props = defineProps(["editarFacturaProp"]);
+
 const appStore = storeApp();
 const rules = new Rules();
 const clienteClass = appStore.cliente;
-const clienteForm: any = ref(null)
+const clienteForm: any = ref(null);
+const emitter: any = inject('emitter');
 
 let arrayCliente: any = ref([]);
 let showCliente: any = ref(true);
@@ -86,6 +89,14 @@ const snack: any = ref(false);
 let snackColor = "";
 let msg: String = "";
 let timeMensaje: any = ref();
+
+emitter.on('editarAct', (item: any) => {
+  clienteClass.nombre = item.datosReceptor.nombre;
+  clienteClass.rfc = item.datosReceptor.rfc;
+  clienteClass.domicilioFiscal = item.datosReceptor.domicilioFiscal;
+  clienteClass.regimenFiscal = item.datosReceptor.regimenFiscal;
+  clienteClass.usoCfdi = item.datosReceptor.usoCfdi;
+});
 
 async function buscarPorNombreOrRfc() {
   await axios

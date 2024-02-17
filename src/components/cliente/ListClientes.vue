@@ -53,7 +53,6 @@ let search: any = ref("");
 
 onMounted(() => {
   desserts.value = props.listClientes;
-  console.log(desserts.value)
 });
 
 function selecItem(item: any) {

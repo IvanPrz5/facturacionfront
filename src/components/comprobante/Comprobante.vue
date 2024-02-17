@@ -57,7 +57,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, inject } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
 import Rules from "@/class/Rules";
@@ -72,9 +72,21 @@ const itemsTipoComprobante: any = ref([]);
 const itemsExportacion: any = ref([]);
 const itemsFormaPago: any = ref([]);
 const itemsMetodoPago: any = ref([]);
+const emitter: any = inject('emitter');
 
 let arrayComprobante: any = ref([]);
 let showComprobante: any = ref(true);
+
+emitter.on('editarAct', (item: any) => {
+  comprobanteClass.idTipoComprobante = item.datosComprobante.idTipoComprobante;
+  comprobanteClass.idExportacion = item.datosComprobante.idExportacion;
+  comprobanteClass.idFormaPago = item.datosComprobante.idFormaPago;
+  comprobanteClass.idMetodoPago = item.datosComprobante.idMetodoPago;
+  if(item.datosComprobante.folio != null && item.datosComprobante.serie != null){
+    comprobanteClass.folio = item.datosComprobante.folio;
+    comprobanteClass.serie = item.datosComprobante.serie;
+  }
+});
 
 onMounted(() => {
   getTipoComprobante();

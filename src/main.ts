@@ -14,6 +14,9 @@ import axios from "axios";
 // Composables
 import { createApp } from "vue";
 
+import mitt from 'mitt';
+const emitter = mitt();
+
 axios.interceptors.request.use(
   (config) => {
     config.headers["Access-Control-Allow-Origin"] = "*";
@@ -35,5 +38,5 @@ axios.interceptors.request.use(
 const app = createApp(App);
 
 registerPlugins(app);
-
+app.provide('emitter', emitter);
 app.mount("#app");

@@ -2,8 +2,54 @@
   <v-container>
     <v-row no-gutters>
       <v-col cols="4">
-        <v-text-field density="compact" variant="solo" label="Buscar" append-inner-icon="mdi-magnify"
-          single-line></v-text-field>
+        <v-menu v-model="menu" location="end" :close-on-content-click="false">
+          <template v-slot:activator="{ props }">
+            <v-btn color="indigo" v-bind="props"> Buscar Por </v-btn>
+          </template>
+          <v-card width="600">
+            <v-radio-group v-model="column">
+              <v-radio :value="0">
+                <template v-slot:label>
+                  <div>Buscar por <strong class="text-success"> uuid, rfc </strong></div>
+                </template>
+              </v-radio>
+              <v-radio :value="1">
+                <template v-slot:label>
+                  <div>Buscar por <strong class="text-primary"> fechas </strong></div>
+                </template>
+              </v-radio>
+              <v-radio :value="2">
+                <template v-slot:label>
+                  <div>Buscar por <strong class="text-primary"> totales </strong></div>
+                </template>
+              </v-radio>
+            </v-radio-group>
+            <v-divider></v-divider>
+            <v-list>
+              <v-list-item v-if="column == 0">
+                <v-text-field class="mt-2" density="compact" append-inner-icon="mdi-magnify" v-model="buscarPor"
+                  @keyup.enter="getFacturasByUuidOrFechas(0)" placeholder="UUID"></v-text-field>
+              </v-list-item>
+              <v-list-item v-if="column == 1">
+                <div class="mx-3 mb-2 d-flex">
+                  <VueDatepicker v-model="fechaInicio" auto-apply :enable-time-picker="false" :format="formatDate"
+                    :start-time="startTime" locale="es-MX" :state="state" teleport-center hide-input-icon
+                    :inline="{ input: true }" />
+                  <VueDatepicker v-model="fechaFin" auto-apply :enable-time-picker="false" :min-date="fechaInicio"
+                    :format="formatDate" :start-time="endTime" locale="es-MX" :state="state" teleport-center
+                    hide-input-icon :inline="{ input: true }" />
+                </div>
+              </v-list-item>
+              <v-list-item v-if="column == 2">
+                <v-text-field class="mt-2" density="compact" append-inner-icon="mdi-magnify" v-model="totales"
+                  @keyup.enter="getFacturasByUuidOrFechas(0)" placeholder="Totales"></v-text-field>
+              </v-list-item>
+            </v-list>
+            <v-card-actions>
+              <v-btn v-if="column != null" class="bg-primary" block @click="getFacturasByUuidOrFechas(0)">Buscar</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-menu>
       </v-col>
       <v-spacer></v-spacer>
       <v-col cols="1">
@@ -15,22 +61,22 @@
           </template>
           <v-list>
             <v-list-item>
-              <v-btn variant="text" block @click="getFacturas(0, true)">Timbradas</v-btn>
+              <v-btn variant="text" block @click="getFacturas(0, true, false)">Timbradas</v-btn>
             </v-list-item>
             <v-list-item>
-              <v-btn variant="text" block @click="getFacturas(0, false)">Por Timbrar</v-btn>
+              <v-btn variant="text" block @click="getFacturas(0, true, true)">Canceladas</v-btn>
             </v-list-item>
-            <!-- <v-list-item>
-              <v-btn variant="text" block @click="getFacturas(fechas)">Por Fechas</v-btn>
-            </v-list-item> -->
+            <v-list-item>
+              <v-btn variant="text" block @click="getFacturas(0, false, false)">Por Timbrar</v-btn>
+            </v-list-item>
           </v-list>
         </v-menu>
       </v-col>
     </v-row>
-    <v-card elevation="10">
+    <v-card class="mt-5" elevation="10">
       <v-card-text>
-        <v-data-table v-model:expanded="expanded" :page.sync="page" :headers="headers" :items="facturas"
-          :loading="loading" :items-per-page="itemsPerPage" show-expand>
+        <v-data-table v-model:expanded="expanded" :headers="headers" :items="facturas" :loading="loading"
+          :items-per-page="itemsPerPage" item-value="datosComprobante.id" show-expand>
           <template v-slot:item.datosComprobante.idTipoComprobante="{ value }">
             <v-chip :color="getColor(value)">
               {{ value }}
@@ -38,15 +84,23 @@
           </template>
           <template v-slot:item.actions="{ item }">
             <!-- @vue-ignore -->
-            <div v-if="item.datosComprobante.isTimbrado == false">
+            <div v-if="item.datosComprobante.isTimbrado == false &&
+              item.datosComprobante.isCancelado == false
+              ">
               <v-btn class="mr-2" color="success" variant="tonal" @click="confirmarTimbrar(item)">
                 <v-icon size="large"> mdi-bell </v-icon>
               </v-btn>
-              <v-btn variant="tonal" color="indigo" @click="editarFactura(item)">
+              <v-btn class="mr-2" variant="tonal" color="indigo" @click="editarFactura(item)">
                 <v-icon size="large"> mdi-pencil </v-icon>
               </v-btn>
+              <v-btn variant="tonal" color="error" @click="eliminarFactura(item)">
+                <v-icon size="large"> mdi-delete </v-icon>
+              </v-btn>
             </div>
-            <div v-else>
+            <!-- @vue-ignore -->
+            <div v-if="item.datosComprobante.isTimbrado == true &&
+              item.datosComprobante.isCancelado == false
+              ">
               <v-btn class="mr-2" color="red-lighten-1" variant="tonal" @click="confirmaCancelar(item)">
                 <v-icon size="large"> mdi-bell-cancel </v-icon>
               </v-btn>
@@ -79,9 +133,6 @@
                   <div>Valor Unitario: {{ i.valorUnitario }} -</div>
                   <div>Importe: {{ i.importe }} -</div>
                   <div>Descuento: {{ i.descuento }}</div>
-                  <!-- <div> -->
-                  <!-- {{ i.trasladoList }} -->
-                  <!-- </div> -->
                 </div>
               </td>
             </tr>
@@ -105,8 +156,9 @@
         <v-icon class="mb-5" :color="colorBtn" icon="mdi-alert-decagram-outline" size="112"></v-icon>
         <h2 class="text-h5 mb-6">{{ btnText }} ?</h2>
         <p class="mb-4 text-medium-emphasis text-body-4">
-          {{ itemCancelar.datosComprobante.uuid }}
+          {{ itemTimbrarCancelar.datosComprobante.uuid }}
         </p>
+        <!-- <v-progress-linear indeterminate :color="colorBtn" v-model="mostrarCarga"></v-progress-linear> -->
         <v-divider class="mb-4"></v-divider>
         <div class="text-end">
           <v-btn :color="colorBtn" @click="cancelarTimbrarFactura">
@@ -116,36 +168,62 @@
       </v-sheet>
     </v-dialog>
   </v-container>
+  <v-dialog v-model="dialogFacturacion" scrollable width="auto">
+    <v-card>
+      <Facturacion :propsEditarFactura="propsEditarFactura" @cerrarVentanaFacturacion="cerrarVentanaFacturacion" />
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="loader" width="auto" persistent>
+    <v-card color="indigo">
+      <v-card-text class="d-flex flex-column align-center mx-5 mt-3 mb-5">
+        Por favor espere.
+        <v-progress-circular :size="70" :width="7" color="warning" indeterminate></v-progress-circular>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { ref, computed, inject, watch } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
-import { SourceTextModule } from "vm";
-import { domainToASCII } from "url";
+import VueDatepicker from "@vuepic/vue-datepicker";
+import "@vuepic/vue-datepicker/dist/main.css";
+
+import Facturacion from "../Facturacion/Facturacion.vue";
+import { onMounted } from "vue";
 
 const appStore = storeApp();
-
+const emitter: any = inject("emitter");
 const headers: any = ref([
-  { title: "ID", key: "datosComprobante.id" },
+  { title: "ID", key: "datosComprobante.id", sortable: false },
   { title: "Receptor", key: "datosReceptor.nombre", sortable: false },
-  // { title: "Fecha", key: "datosComprobante.fecha" },
-  { title: "Comprobante", key: "datosComprobante.idTipoComprobante", align: "center" },
+  {
+    title: "Comprobante",
+    key: "datosComprobante.idTipoComprobante",
+    align: "center",
+  },
   { title: "SubTotal", key: "datosComprobante.subTotal", align: "center" },
   { title: "Descuento", key: "datosComprobante.descuento", align: "center" },
   { title: "Total", key: "datosComprobante.total", align: "center" },
+  { title: "Fecha", key: "datosComprobante.fecha", sortable: false },
   { title: "UUID", key: "datosComprobante.uuid" },
   { title: "Actions", key: "actions", sortable: false },
 ]);
-let facturas: any = ref([]);
 let expanded: any = ref([]);
+
+let facturas: any = ref([]);
 
 let page: any = ref(1);
 let totalElements: any = ref();
 let totalPages: any = ref();
 let itemsPerPage: any = ref(25);
 let tipoConsulta: any = ref(true);
+let tipoConsulta2: any = ref(false);
+let canceladas: any = ref(0);
+let dialogFacturacion: any = ref(false);
+let statusPage: any = ref();
+let buscarPor: any = ref();
 
 const snack: any = ref(false);
 let snackColor = "";
@@ -153,61 +231,151 @@ let msg: String = "";
 let timeMensaje: any = ref();
 
 let dialogCancelarXml: any = ref(false);
-let itemCancelar: any = ref();
+let itemTimbrarCancelar: any = ref();
 let btnText: any = ref();
 let colorBtn: any = ref();
 
-const pageCount = computed(() => {
-  getFacturas(page.value - 1, tipoConsulta.value);
-  return Math.ceil(totalElements.value / itemsPerPage.value);
+let loading: any = ref(false);
+let propsEditarFactura: any = ref();
+let loader: any = ref(false);
+
+let fechaInicio: any = ref();
+let fechaFin: any = ref();
+const fechasValidas: any = ref(false);
+let contenidoTabla: any = ref(true);
+
+let pageCount: any = ref();
+let column: any = ref(null);
+let totales: any = ref();
+
+let menu: any = ref(false);
+
+const startTime = ref({ hours: 0, minutes: 0 });
+const endTime = ref({ hours: 23, minutes: 59 });
+const state: any = ref(false);
+
+onMounted(() => {
+  getFacturas(0, true, false);
 });
 
-let loading: any = ref(false);
-
+watch(page, (nuevoValor: any) => {
+  if (contenidoTabla.value == false) {
+    getFacturasByUuidOrFechas(nuevoValor - 1);
+  } else {
+    getFacturas(nuevoValor - 1, tipoConsulta.value, tipoConsulta2.value);
+  }
+});
 
 function getColor(item: any) {
   if (item == "I") {
-    return 'blue';
+    return "blue";
   }
   if (item == "E") {
-    return 'green';
+    return "green";
   }
   if (item == "T") {
-    return 'orange';
+    return "orange";
   }
   if (item == "N") {
-    return 'red';
+    return "red";
   }
   if (item == "P") {
-    return 'yellow';
+    return "yellow";
   }
 }
 
-async function getFacturas(pageNumber: any, tipo: any) {
+async function getFacturas(pageNumber: any, tipo: any, tipo2: any) {
   facturas.value = [];
   loading.value = true;
   tipoConsulta.value = tipo;
+  tipoConsulta2.value = tipo2;
+  contenidoTabla.value = true;
+
+  if (page.value > totalPages.value) {
+    pageNumber = 0;
+  }
+
+  let ruta =
+    appStore.link +
+    "/Comprobante/" +
+    tipo +
+    "/" +
+    tipo2 +
+    "/" +
+    appStore.empresa.id +
+    "/pageable";
+
   await axios
-    .get(
-      appStore.link +
-      "/Comprobante/" +
-      tipo +
-      "/" +
-      appStore.empresa.id +
-      "/pageable",
-      {
-        params: {
-          page: page.value - 1,
-          size: itemsPerPage.value,
-        },
-      }
-    )
+    .get(ruta, {
+      params: {
+        page: pageNumber,
+        size: 50,
+      },
+    })
     .then((response) => {
       setTimeout(() => {
         totalPages.value = response.data.totalPages;
+        pageCount.value = response.data.totalPages;
         facturas.value = response.data.content;
         totalElements.value = response.data.totalElements;
         loading.value = false;
+      }, 500);
+    })
+    .catch((e) => {
+      console.log("Fatal " + e);
+    });
+}
+
+async function getFacturasByUuidOrFechas(pageNumber: any) {
+  contenidoTabla.value = false;
+  loading.value = true;
+  let ruta = null;
+  if (column.value == 0) {
+    ruta = "/byUuid/" + buscarPor.value + "/" + tipoConsulta.value + "/" + tipoConsulta2.value + "/" + appStore.empresa.id;
+    getConsultasByFilters(pageNumber, ruta)
+  }
+  if (column.value == 1) {
+    if (fechaInicio.value != undefined && fechaFin.value != undefined) {
+      state.value = true;
+    } else {
+      state.value = false;
+    }
+    let inicioAux = convert(fechaInicio.value);
+    let finAux = convert(fechaFin.value);
+    if (inicioAux <= finAux) {
+      fechasValidas.value = true;
+    } else {
+      fechasValidas.value = false;
+    }
+    if (state.value && fechasValidas.value) {
+      ruta = "/byFechas/" + inicioAux + "/" + finAux + "/" + tipoConsulta.value + "/" + tipoConsulta2.value + "/" + appStore.empresa.id;
+      getConsultasByFilters(pageNumber, ruta);
+    }
+  }
+  if (column.value == 2) {
+    ruta = "/byTotal/" + totales.value + "/" + tipoConsulta.value + "/" + tipoConsulta2.value + "/" + appStore.empresa.id
+    getConsultasByFilters(pageNumber, ruta)
+  }
+}
+
+async function getConsultasByFilters(pageNumber: any, ruta: any) {
+  await axios
+    .get(
+      appStore.link +
+      "/Comprobante" + ruta, {
+      params: {
+        page: pageNumber,
+        size: itemsPerPage.value,
+      },
+    })
+    .then((response) => {
+      setTimeout(() => {
+        totalPages.value = response.data.totalPages;
+        pageCount.value = response.data.totalPages;
+        facturas.value = response.data.content;
+        totalElements.value = response.data.totalElements;
+        loading.value = false;
+        menu.value = false;
       }, 500);
     })
     .catch((e) => {
@@ -219,67 +387,58 @@ function confirmaCancelar(item: any) {
   btnText.value = "CANCELAR FACTURA";
   colorBtn.value = "red-lighten-1";
   dialogCancelarXml.value = true;
-  itemCancelar.value = item;
+  itemTimbrarCancelar.value = item;
 }
 
 function confirmarTimbrar(item: any) {
   btnText.value = "TIMBRAR FACTURA";
   colorBtn.value = "green-lighten-1";
   dialogCancelarXml.value = true;
-  itemCancelar.value = item;
+  itemTimbrarCancelar.value = item;
 }
 
 async function cancelarTimbrarFactura() {
-  let contador = 0;
-  itemCancelar.value.datosConcepto.forEach((a: any, b: any) => {
-    itemCancelar.value.datosConcepto[b].datosImpuesto.forEach((c: any, d: any) => {
-      if(itemCancelar.value.datosConcepto[b].datosImpuesto[d].isTrasladado == true){
-        contador++;
-      }
-    });
-  });
-  
-  // arrayConceptos.value[conceptoIndex.value].datosImpuesto = item;
-  // arrayConceptos.value[conceptoIndex.value].numTrasladados = numTrasladados;
-  // arrayConceptos.value[conceptoIndex.value].numRetenciones = numRetenciones;
-
-
-  /* if (btnText.value == "CANCELAR FACTURA") {
-    axios
-      .post(appStore.link + "/Facturacion/cancelarXml", itemCancelar.value)
-      .then((response) => {
-        if (response.data.status == 0) {
-          dialogCancelarXml.value = false;
-          mostrarSnack("success", response.data.mensaje, 3000);
-        } else {
-          dialogCancelarXml.value = false;
-          mostrarSnack("error", response.data.mensaje, 5000);
-        }
-      })
-      .catch((e) => {
-        console.log("Fatal " + e);
-      });
+  if (btnText.value == "CANCELAR FACTURA") {
+    let obj = {
+      idEmpresa: itemTimbrarCancelar.value.idEmpresa,
+      uuid: itemTimbrarCancelar.value.datosComprobante.uuid,
+    };
+    let ruta = appStore.link + "/Facturacion/cancelarXml";
+    await rutaAxios(axios.put, ruta, obj);
   } else {
-    await axios
-      .post(appStore.link + "/Facturacion/timbrarXml", itemCancelar.value)
-      .then((response) => {
-        if (response.data.status == 0) {
-          // dialog.value = false;
-          mostrarSnack("success", response.data.mensaje, 3000);
-        } else {
-          // dialog.value = false;
-          mostrarSnack("error", response.data.mensaje, 5000);
-        }
-      })
-      .catch((e) => {
-        console.log("Fatal" + e);
-      });
-  } */
+    itemTimbrarCancelar.value.datosComprobante.isTimbrado = true;
+    let ruta = appStore.link + "/Facturacion/timbrarXml";
+    await rutaAxios(axios.post, ruta, itemTimbrarCancelar.value);
+  }
+}
+
+async function rutaAxios(tipoAxios: any, ruta: any, obj: any) {
+  dialogCancelarXml.value = false;
+  loader.value = true;
+  await tipoAxios(ruta, obj)
+    .then((response: any) => {
+      if (response.data.status == 0) {
+        loader.value = false;
+        mostrarSnack("success", response.data.mensaje, 3000);
+        getFacturas(page.value - 1, tipoConsulta.value, tipoConsulta2.value);
+      } else {
+        loader.value = false;
+        mostrarSnack("error", response.data.mensaje, 5000);
+      }
+    })
+    .catch((e: any) => {
+      console.log("Fatal" + e);
+    });
 }
 
 async function descargarPdf(item: any) {
   await axios({
-    url: appStore.link + "/Xml/descargarPdf/" + item.datosComprobante.uuid + "/" + appStore.empresa.id,
+    url:
+      appStore.link +
+      "/Xml/descargarPdf/" +
+      item.datosComprobante.uuid +
+      "/" +
+      appStore.empresa.id,
     method: "GET",
     responseType: "blob",
   })
@@ -334,8 +493,26 @@ async function descargarCvv(item: any) {
     });
 }
 
+function eliminarFactura(item: any) {
+  axios
+    .put(appStore.link + "/Comprobante/eliminar", item)
+    .then((response) => {
+      console.log(response.data);
+      if (response.data == 0) {
+        loader.value = false;
+        mostrarSnack("success", "eliminado", 3000);
+        getFacturas(page.value - 1, tipoConsulta.value, tipoConsulta2.value);
+      }
+    })
+    .catch((e) => {
+      console.log("Fatal" + e);
+    });
+}
+
 function editarFactura(item: any) {
-  console.log(item)
+  dialogFacturacion.value = true;
+  propsEditarFactura.value = item;
+  emitter.emit("editarAct", item);
 }
 
 function mostrarSnack(color: any, msgSnack: any, time: any) {
@@ -343,5 +520,21 @@ function mostrarSnack(color: any, msgSnack: any, time: any) {
   msg = msgSnack;
   timeMensaje = time;
   snack.value = true;
+}
+
+function cerrarVentanaFacturacion() {
+  dialogFacturacion.value = false;
+}
+
+function formatDate(date: any) {
+  let aux = date.toLocaleString("en-GB").replace(" ", " ");
+  let fecha = aux.substring(0, aux.length - 3);
+  return fecha;
+}
+
+function convert(date: Date) {
+  return date
+    .toLocaleString("sv", { timeZone: "America/Mexico_City" })
+    .replace(" ", "T");
 }
 </script>

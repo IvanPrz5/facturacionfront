@@ -56,7 +56,7 @@
                 <div class="d-flex align-center justify-center">
                   <div>
                     <div class="text-subtitle-2 text-medium-emphasis">
-                      Producto o Servicio: {{ i.claveProdServDesc }}
+                      Producto o Servicio: {{ i.idClaveProdServ }}.- {{ i.claveProdServDesc }}
                     </div>
                     <div class="text-subtitle-2 text-medium-emphasis">
                       Clave Unidad: {{ i.idClaveUnidad }}.- {{ i.unidad }}
@@ -155,9 +155,9 @@
         <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
         <v-spacer></v-spacer>
         <div class="d-flex flex-column">
-          <div>SubTotal : {{ subTotal }}</div>
-          <div style="color: red">Descuento : - {{ descuento }}</div>
-          <div style="color: green">Total : {{ total }}</div>
+          <div>SubTotal : {{ resultados.subTotal }}</div>
+          <div style="color: red">Descuento : - {{ resultados.descuento }}</div>
+          <div style="color: green">Total : {{ resultados.total }}</div>
         </div>
       </v-col>
     </v-row>
@@ -172,11 +172,11 @@
     <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
       {{ msg }}
     </v-snackbar>
-    <v-dialog v-model="dialog" persistent>
-      <v-card color="deep-purple">
-        <v-card-text>
+    <v-dialog v-model="loader" width="auto" persistent>
+      <v-card color="indigo">
+        <v-card-text class="d-flex flex-column align-center mx-5 mt-3 mb-5">
           Por favor espere.
-          <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+          <v-progress-circular :size="70" :width="7" color="warning" indeterminate></v-progress-circular>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -184,8 +184,8 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from "vue";
-import { storeApp } from "@/store/app";
+import { ref, watch, onMounted, computed } from "vue";
+import { storeApp } from "@/store/app"
 import axios from "axios";
 
 import Cliente from "@/components/cliente/Cliente.vue";
@@ -198,18 +198,18 @@ const comprobante = ref<InstanceType<typeof Comprobante> | null>(null);
 const concepto = ref<InstanceType<typeof Concepto> | null>(null);
 const impuesto = ref<InstanceType<typeof Impuesto> | null>(null);
 
+const props = defineProps(["propsEditarFactura"]);
+const emit = defineEmits(["cerrarVentanaFacturacion"]);
+
 const appStore = storeApp();
-const clienteClass = appStore.cliente;
-const comprobanteClass = appStore.comprobante;
 
 let datosFactura: any = ref({});
 
 let showComprobante: any = ref(true);
 let showConcepto: any = ref(false);
 
-let showListConceptos: any = ref(true);
 let dialogImpuesto: any = ref(false);
-let dialog: any = ref(false);
+let loader: any = ref(false);
 
 let arrayConceptos: any = ref([]);
 let propConcepto: any = ref();
@@ -228,54 +228,60 @@ let snackColor = "";
 let msg: String = "";
 let timeMensaje: any = ref();
 
-let subTotal: any = ref();
-let descuento: any = ref();
-let total: any = ref();
+let editarFacturaProp: any = ref();
 
-let importeConcepto: any = ref();
+onMounted(() => {
+  if (props.propsEditarFactura != undefined) {
+    editarFacturaProp.value = props.propsEditarFactura.datosCliente;
+    arrayConceptos.value = props.propsEditarFactura.datosConcepto;
+  }
+});
 
-watch(arrayConceptos.value, (nuevoValor) => {
+let resultados = computed(() => {
   let aux = 0;
   let aux2 = 0;
   let aux3 = 0;
   let aux4 = 0;
-  for (let i = 0; i < nuevoValor.length; i++) {
-    aux += Number(nuevoValor[i].importe);
-    aux2 += Number(nuevoValor[i].descuento);
-    aux3 += Number(nuevoValor[i].totalImp);
-    // console.log(nuevoValor)
+  for (let i = 0; i < arrayConceptos.value.length; i++) {
+    aux += Number(arrayConceptos.value[i].importe);
+    aux2 += Number(arrayConceptos.value[i].descuento);
+    aux3 += Number(arrayConceptos.value[i].totalImp);
   }
-  subTotal.value = Number(aux).toFixed(2);
-  descuento.value = Number(aux2).toFixed(2);
-  // if (aux3 > 0) {
-  aux4 = Number(subTotal.value) - Number(descuento.value) + aux3;
-  total.value = Number(aux4).toFixed(2);
-  /* } else {
-    aux4 = Number(subTotal.value) - Number(descuento.value);
-    total.value = Number(aux4).toFixed(2);
-  } */
+
+  let obj = {
+    subTotal: "",
+    descuento: "",
+    total: ""
+  }
+
+  obj.subTotal = Number(aux).toFixed(2);
+  obj.descuento = Number(aux2).toFixed(2);
+  aux4 = Number(obj.subTotal) - Number(obj.descuento) + aux3;
+  obj.total = Number(aux4).toFixed(2);
+
+  return obj;
 });
 
 async function generarFactura() {
-  // dialog.value = true;
   let datosComprobante = await getDatosComprobante();
   let datosCliente = await getDatosCliente();
   if (datosCliente != null && datosComprobante != null) {
     datosFactura.value.datosConcepto = arrayConceptos.value;
-    if(despues.value == -1){
+    if (despues.value == -1) {
       datosFactura.value.datosComprobante.isTimbrado = false;
     }
 
-  datosFactura.value.idEmpresa = appStore.empresa.id;
-  console.log(datosFactura.value);
-  await axios
+    datosFactura.value.idEmpresa = appStore.empresa.id;
+    loader.value = true;
+    await axios
       .post(appStore.link + "/Facturacion/timbrarXml", datosFactura.value)
       .then((response) => {
         if (response.data.status == 0) {
-          dialog.value = false;
+          loader.value = false;
           mostrarSnack("success", response.data.mensaje, 3000);
+          emit("cerrarVentanaFacturacion");
         } else {
-          dialog.value = false;
+          loader.value = false;
           mostrarSnack("error", response.data.mensaje, 5000);
         }
       })
@@ -283,16 +289,16 @@ async function generarFactura() {
         console.log("Fatal" + e);
       });
   } else {
-    console.log("No dejar campos vacios")
+    console.log("No dejar campos vacios");
   }
 }
 
-function timbrar(){
+function timbrar() {
   despues.value = 1;
   generarFactura();
 }
 
-function timbrarDespues(){
+function timbrarDespues() {
   despues.value = -1;
   generarFactura();
 }
@@ -346,9 +352,8 @@ function crearImpuesto(item: any) {
   dialogImpuesto.value = true;
   propImpuesto.value = null;
   if (item.datosImpuesto.length > 0) {
-    console.log(item.datosImpuesto)
     propTabla.value = item.datosImpuesto;
-  }else{
+  } else {
     propTabla.value = [];
   }
   propImporte.value = item.importe;
@@ -357,14 +362,13 @@ function crearImpuesto(item: any) {
 
 function getDatosImpuestos(item: any) {
   if (item != null) {
-    
+
     let numTrasladados = 0;
     let numRetenciones = 0;
-    for(let i=0; i<item.length; i++){
-      if(item[i].isTrasladado == true){
+    for (let i = 0; i < item.length; i++) {
+      if (item[i].isTrasladado == true) {
         numTrasladados++;
-        console.log(numTrasladados)
-      }else{
+      } else {
         numRetenciones++;
       }
     }
@@ -376,7 +380,6 @@ function getDatosImpuestos(item: any) {
 
 function editarImpuesto(imp: any, concep: any) {
   dialogImpuesto.value = true;
-  console.log(imp)
   propImpuesto.value = imp;
   propImporte.value = null;
   conceptoIndex.value = arrayConceptos.value.indexOf(concep);
@@ -432,9 +435,7 @@ function getTotalConcepRete(item: any) {
 function getTotalConcepImp(item: any) {
   let aux = 0;
   let index = arrayConceptos.value.indexOf(item);
-  aux =
-    Number(arrayConceptos.value[index].totalTras) +
-    -Number(arrayConceptos.value[index].totalRete);
+  aux = Number(arrayConceptos.value[index].totalTras) + -Number(arrayConceptos.value[index].totalRete);
   arrayConceptos.value[index].totalImp = Number(aux).toFixed(2);
 }
 
@@ -482,4 +483,9 @@ function codObjImpuesto(codImpuesto: any) {
     return "04 - Si Objeto de Impuesto Y No Causa Impuesto";
   }
 }
+
+/* function cargarDatos(item: any) {
+  editarClienteProp.value = item.datosReceptor;
+  console.log(editarClienteProp.value)
+} */
 </script>
