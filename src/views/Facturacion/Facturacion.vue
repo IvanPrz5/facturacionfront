@@ -13,9 +13,10 @@
         <v-card variant="tonal">
           <v-card-title class="d-flex">
             Conceptos Agregados
+          <v-card-subtitle color="red" v-if="facturaTimbrada" class="mt-2"> FACTURA TIMBRADA UUID: <strong class="text-success"> {{ uuidTimbrado }} </strong> </v-card-subtitle>
             <v-spacer></v-spacer>
             <v-divider class="mx-4" inset vertical></v-divider>
-            <v-btn color="indigo" @click="crearConcepto">
+            <v-btn color="indigo" @click="crearConcepto" v-if="!facturaTimbrada || !editarProp">
               <v-icon size="x-large">mdi-plus</v-icon>
               <v-tooltip activator="parent" location="end">Agregar Concepto</v-tooltip>
             </v-btn>
@@ -44,11 +45,20 @@
                       </div>
                     </v-list-item>
                   </v-col>
-                  <v-col cols="2">
-                    <v-btn v-if="i.idObjetoImp != '01'" variant="text" icon="mdi-cash-plus" color="green-lighten-2"
-                      @click="crearImpuesto(i)"></v-btn>
-                    <v-btn variant="text" icon="mdi-pencil" color="blue-lighten-2" @click="editarConcepto(i)"></v-btn>
-                    <v-btn variant="text" icon="mdi-delete" color="red-lighten-2" @click="eliminarConcepto(i)"></v-btn>
+                  <v-col cols="2" v-if="!facturaTimbrada || !editarProp">
+                    <v-btn v-if="i.idObjetoImp != '01'" variant="text" icon color="green-lighten-2"
+                      @click="crearImpuesto(i)">
+                      <v-icon>mdi-cash-plus</v-icon>
+                      <v-tooltip activator="parent" location="end">Crear Impuesto</v-tooltip>
+                    </v-btn>
+                    <v-btn variant="text" icon color="blue-lighten-2" @click="editarConcepto(i)">
+                      <v-icon>mdi-pencil</v-icon>
+                      <v-tooltip activator="parent" location="end">Editar Concepto</v-tooltip>
+                    </v-btn>
+                    <v-btn variant="text" icon color="red-lighten-2" @click="eliminarConcepto(i)">
+                      <v-icon>mdi-delete</v-icon>
+                      <v-tooltip activator="parent" location="end">Eliminar Concepto</v-tooltip>
+                    </v-btn>
                   </v-col>
                 </v-row>
               </template>
@@ -93,11 +103,16 @@
                             </div>
                           </v-list-item>
                         </v-col>
-                        <v-col cols="2">
-                          <v-btn variant="text" icon="mdi-pencil-box-outline" color="indigo-lighten-2"
-                            @click="editarImpuesto(j, i)"></v-btn>
-                          <v-btn v-if="i.datosImpuesto.length > 1" variant="text" icon="mdi-delete-circle-outline"
-                            color="purple-lighten-2" @click="eliminarImpuesto(j, i)"></v-btn>
+                        <v-col cols="2" v-if="!facturaTimbrada || !editarProp">
+                          <v-btn variant="text" icon color="indigo-lighten-2" @click="editarImpuesto(j, i)">
+                            <v-icon>mdi-pencil-box-outline</v-icon>
+                            <v-tooltip activator="parent" location="end">Editar Impuesto</v-tooltip>
+                          </v-btn>
+                          <v-btn v-if="i.datosImpuesto.length > 1" variant="text" icon color="purple-lighten-2"
+                            @click="eliminarImpuesto(j, i)">
+                            <v-icon>mdi-delete-circle-outline</v-icon>
+                            <v-tooltip activator="parent" location="end">Eliminar Impuesto</v-tooltip>
+                          </v-btn>
                         </v-col>
                       </v-row>
                     </v-list-item>
@@ -131,11 +146,16 @@
                             </div>
                           </v-list-item>
                         </v-col>
-                        <v-col cols="2">
-                          <v-btn variant="text" icon="mdi-pencil-box-outline" color="indigo-lighten-2"
-                            @click="editarImpuesto(j, i)"></v-btn>
-                          <v-btn variant="text" icon="mdi-delete-circle-outline" color="purple-lighten-2"
-                            v-if="i.datosImpuesto.length > 1" @click="eliminarImpuesto(j, i)"></v-btn>
+                        <v-col cols="2" v-if="!facturaTimbrada || !editarProp">
+                          <v-btn variant="text" icon color="indigo-lighten-2" @click="editarImpuesto(j, i)">
+                            <v-icon>mdi-pencil-box-outline</v-icon>
+                            <v-tooltip activator="parent" location="end">Editar Impuesto</v-tooltip>
+                          </v-btn>
+                          <v-btn variant="text" icon color="purple-lighten-2" v-if="i.datosImpuesto.length > 1"
+                            @click="eliminarImpuesto(j, i)">
+                            <v-icon>mdi-delete-circle-outline</v-icon>
+                            <v-tooltip activator="parent" location="end">Eliminar Impuesto</v-tooltip>
+                          </v-btn>
                         </v-col>
                       </v-row>
                     </v-list-item>
@@ -146,17 +166,19 @@
           </v-list>
         </v-card>
       </v-col>
-      <v-col cols="6" v-if="arrayConceptos.length == 0">
+      <v-col cols="6" v-if="facturaTimbrada && editarProp">
         <v-btn color="indigo" @click="crearConcepto"> Agregar Concepto </v-btn>
       </v-col>
-      <v-col cols="12" class="d-flex" v-if="arrayConceptos.length > 0">
+      <v-col cols="12" class="d-flex" v-if="arrayConceptos.length > 0 && !facturaTimbrada || !editarProp">
         <!-- <v-spacer></v-spacer> -->
-        <v-btn color="warning" @click="timbrarDespues"> Timbrar Despues </v-btn>
-        <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
+        <div style="display: flex; gap: 10px;">
+          <v-btn color="warning" @click="timbrarDespues"> Timbrar Despues </v-btn>
+          <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
+        </div>
         <v-spacer></v-spacer>
         <div class="d-flex flex-column">
           <div>SubTotal : {{ resultados.subTotal }}</div>
-          <div style="color: red">Descuento : - {{ resultados.descuento }}</div>
+          <div style="color: red">Descuento : {{ resultados.descuento }}</div>
           <div style="color: green">Total : {{ resultados.total }}</div>
         </div>
       </v-col>
@@ -184,7 +206,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, onMounted, computed } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { storeApp } from "@/store/app"
 import axios from "axios";
 
@@ -210,6 +232,8 @@ let showConcepto: any = ref(false);
 
 let dialogImpuesto: any = ref(false);
 let loader: any = ref(false);
+let editarProp: any = ref(true);
+let facturaTimbrada: any = ref(true);
 
 let arrayConceptos: any = ref([]);
 let propConcepto: any = ref();
@@ -217,9 +241,10 @@ let propImpuesto: any = ref();
 let propImporte: any = ref();
 let propTabla: any = ref();
 
-// let arrayImpuestos: any = ref([]);
+let uuidTimbrado: any = ref();
 
 let conceptoIndex: any = ref(-1);
+let precargadoIndex: any = ref(-1);
 let impuestoIndex: any = ref(-1);
 let despues: any = ref();
 
@@ -234,6 +259,7 @@ onMounted(() => {
   if (props.propsEditarFactura != undefined) {
     editarFacturaProp.value = props.propsEditarFactura.datosCliente;
     arrayConceptos.value = props.propsEditarFactura.datosConcepto;
+    editarProp.value = false;
   }
 });
 
@@ -266,20 +292,30 @@ async function generarFactura() {
   let datosComprobante = await getDatosComprobante();
   let datosCliente = await getDatosCliente();
   if (datosCliente != null && datosComprobante != null) {
+    let ruta = "/Facturacion/timbrarXml";
+
     datosFactura.value.datosConcepto = arrayConceptos.value;
     if (despues.value == -1) {
       datosFactura.value.datosComprobante.isTimbrado = false;
     }
-
     datosFactura.value.idEmpresa = appStore.empresa.id;
     loader.value = true;
     await axios
-      .post(appStore.link + "/Facturacion/timbrarXml", datosFactura.value)
+      .post(appStore.link + ruta, datosFactura.value)
       .then((response) => {
         if (response.data.status == 0) {
           loader.value = false;
-          mostrarSnack("success", response.data.mensaje, 3000);
-          emit("cerrarVentanaFacturacion");
+          if (response.data.mensaje != "Los datos se guardaron para timbrar despues") {
+            mostrarSnack("green", "Se timbro con el uuid: " + response.data.mensaje, 3500);
+            emit("cerrarVentanaFacturacion");
+            uuidTimbrado.value = response.data.mensaje;
+            descargarArchivos(response.data.mensaje);
+            facturaTimbrada.value = true;
+            emit("cerrarVentanaFacturacion", response.data.mensaje);
+          } else {
+            mostrarSnack("green", response.data.mensaje, 5000);
+            emit("cerrarVentanaFacturacion", response.data.mensaje);
+          }
         } else {
           loader.value = false;
           mostrarSnack("error", response.data.mensaje, 5000);
@@ -320,8 +356,12 @@ function crearConcepto() {
 
 function getDatosConceptos(item: any) {
   if (item != null) {
+    if(facturaTimbrada.value == true && editarProp == true){
+      arrayConceptos.value = [];
+    }
     arrayConceptos.value.push(item);
     cerrarConcepto();
+    facturaTimbrada.value = false;
     if (item.idObjetoImp != "01") {
       crearImpuesto(item);
     }
@@ -337,6 +377,9 @@ function editarConcepto(item: any) {
 function actualizar(item: any) {
   if (item != null) {
     Object.assign(arrayConceptos.value[conceptoIndex.value], item);
+    if (item.idObjetoImp != "01") {
+      crearImpuesto(item);
+    }
   }
 }
 
@@ -358,11 +401,11 @@ function crearImpuesto(item: any) {
   }
   propImporte.value = item.importe;
   conceptoIndex.value = arrayConceptos.value.indexOf(item);
+  precargadoIndex.value = arrayConceptos.value.indexOf(item)
 }
 
 function getDatosImpuestos(item: any) {
-  if (item != null) {
-
+  if (item != null && conceptoIndex.value != -1) {
     let numTrasladados = 0;
     let numRetenciones = 0;
     for (let i = 0; i < item.length; i++) {
@@ -408,6 +451,15 @@ function eliminarImpuesto(imp: any, concep: any) {
 
 function cerrarImpuesto() {
   dialogImpuesto.value = false;
+  if (precargadoIndex.value != -1 && arrayConceptos.value[precargadoIndex.value].precargado && propImpuesto.value == null) {
+    let array = {
+      datosConcepto: [],
+      idEmpresa: null
+    };
+    array.datosConcepto = arrayConceptos.value[precargadoIndex.value];
+    array.idEmpresa = appStore.empresa.id;
+    guardarPrecargado(array);
+  }
 }
 
 function getTotalConcepTras(item: any) {
@@ -484,8 +536,44 @@ function codObjImpuesto(codImpuesto: any) {
   }
 }
 
-/* function cargarDatos(item: any) {
-  editarClienteProp.value = item.datosReceptor;
-  console.log(editarClienteProp.value)
-} */
+async function descargarArchivos(uuid: any) {
+  await axios({
+    url:
+      appStore.link +
+      "/Xml/descargarArchivos/" + uuid + "/" + appStore.empresa.id,
+    method: "GET",
+    responseType: "blob",
+  })
+    .then((response) => {
+      let url = window.URL.createObjectURL(new Blob([response.data]));
+      let link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", uuid + ".zip");
+      document.body.appendChild(link);
+      link.click();
+    })
+    .catch((e) => {
+      console.log(e)
+    })
+}
+
+async function guardarPrecargado(item: any) {
+  let ruta = "/ConceptosPrecargados/add";
+  await axios
+    .post(appStore.link + ruta, item)
+    .then((response) => {
+      if (response.data == 0) {
+        // loader.value = false;
+        mostrarSnack("success", "Se guardo como precargado", 4500);
+        // emit("cerrarVentanaFacturacion");
+        // descargarArchivos(response.data.mensaje)
+      } else {
+        // loader.value = false;
+        mostrarSnack("error", "Error", 5000);
+      }
+    })
+    .catch((e) => {
+      console.log("Fatal" + e);
+    });
+}
 </script>

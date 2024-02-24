@@ -19,11 +19,11 @@
       <v-btn block class="mb-5" color="info" size="large" variant="tonal" @click="login">
         Iniciar Sesión
       </v-btn>
-      <v-card-text class="text-center registerLink">
+      <!-- <v-card-text class="text-center registerLink">
         <a class="text-blue text-decoration-none" rel="noopener noreferrer" @click="register">
           Registrate Aquí <v-icon icon="mdi-chevron-right"></v-icon>
         </a>
-      </v-card-text>
+      </v-card-text> -->
     </v-card>
   </v-container>
   <v-snackbar v-model="snack" :timeout="1900" color="error">

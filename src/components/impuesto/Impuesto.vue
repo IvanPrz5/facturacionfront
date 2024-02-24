@@ -39,6 +39,11 @@
       </v-form>
       <v-row no-gutters>
         <div style="display: none;">{{ array }}</div>
+        <!-- <v-col>
+          <v-btn block color="success" @click="guardarPrecargado">
+            Guardar
+          </v-btn>
+        </v-col> -->
         <v-col v-if="desserts.length > 0" class="px-1" cols="6">
           <v-btn block color="error" @click="cerrarImpuesto()">
             Terminar
@@ -55,7 +60,7 @@
   <v-data-table class="mt-2" v-if="desserts.length > 0 && propImpuesto == null" height="300" :headers="headers"
     :items="desserts" :sort-by="[{ key: 'isTrasladado' }]">
     <template v-slot:top>
-      <v-toolbar density="compact" color="primary">
+      <v-toolbar density="compact" color="purple">
         <v-toolbar-title>Lista de Impuestos</v-toolbar-title>
       </v-toolbar>
     </template>
@@ -103,11 +108,7 @@ const headers: any = ref([
   { title: "Base", key: "base" },
   { title: "Importe", key: "importe" },
   { title: "Tipo", key: "isTrasladado" },
-  {
-    title: "Actions",
-    key: "actions",
-    sortable: false,
-  },
+  { title: "Actions", key: "actions", sortable: false, },
 ]);
 let desserts: any = ref([]);
 

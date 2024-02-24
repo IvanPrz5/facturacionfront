@@ -4,32 +4,37 @@
       Concepto
       <v-spacer></v-spacer>
       <v-divider class="mx-4" inset vertical></v-divider>
-      <v-btn color="success" @click="conceptosPrecargadosDialog = true">
-        <v-icon size="x-large">mdi-set-merge</v-icon>
-        <v-tooltip activator="parent" location="end">Aplicar concepto precargado</v-tooltip>
+      <v-btn color="success" v-if="props.propConcepto == null" @click="conceptosPrecargadosDialog = true">
+        Aplicar Concepto Precargado
       </v-btn>
-      <!-- <v-icon :icon="showConcepto ? 'mdi-chevron-up' : 'mdi-chevron-down'" @click="showConcepto = !showConcepto"></v-icon> -->
     </v-card-title>
     <v-divider></v-divider>
-    <!-- <v-expand-transition> -->
     <v-card-text v-show="showConcepto">
       <v-form ref="conceptoForm" fast-fail @submit.prevent>
         <v-row no-gutters>
-          <v-col cols="4" class="pa-1">
-            <v-text-field variant="outlined" density="compact" label="Ingresa Clave de Producto o Servicio"
+          <v-col cols="12" class="pa-1">
+            <v-textarea variant="outlined" label="Concepto" rows="3" counter="1000" no-resize
+              v-model="conceptoClass.descripcion" :rules="[rules.requerido]"></v-textarea>
+          </v-col>
+          <v-col cols="12" class="pa-1 d-flex">
+            <v-text-field variant="outlined" density="compact" label="Buscar Producto o Servicio"
               v-model="codClaveProdServ" @keyup.enter="getClaveProdServ" append-inner-icon="mdi-magnify"></v-text-field>
+              <v-btn class="ml-2" color="primary" @click="busquedaAvanzada()">
+                <v-icon size="large">mdi-help</v-icon>
+                <v-tooltip activator="parent" location="end">Busqueda Avanzada</v-tooltip>
+              </v-btn>
           </v-col>
-          <v-col cols="8" class="pa-1">
-            <v-text-field variant="outlined" density="compact" v-model="conceptoClass.idClaveProdServ"
-              label="Producto o Servicio" :rules="[rules.requerido]" readonly></v-text-field>
+          <v-col cols="12" class="pa-1" v-if="conceptoClass.idClaveProdServ != null">
+            <v-text-field variant="plain" density="compact" readonly v-model="conceptoClass.idClaveProdServ"
+              label="Clave.- Descripcion de producto y servicio"></v-text-field>
           </v-col>
-          <v-col cols="4" class="pa-1">
-            <v-text-field variant="outlined" density="compact" label="Ingresa Clave Unidad" @keyup.enter="getClaveUnidad"
+          <v-col cols="12" class="pa-1">
+            <v-text-field variant="outlined" density="compact" label="Buscar Unidad" @keyup.enter="getClaveUnidad"
               v-model="codClaveUnidad" append-inner-icon="mdi-magnify"></v-text-field>
           </v-col>
-          <v-col cols="8" class="pa-1">
-            <v-text-field variant="outlined" density="compact" label="Clave Unidad" v-model="conceptoClass.idClaveUnidad"
-              :rules="[rules.requerido]" readonly></v-text-field>
+          <v-col cols="12" class="pa-1" v-if="conceptoClass.idClaveUnidad != null">
+            <v-text-field variant="plain" density="compact" readonly v-model="conceptoClass.idClaveUnidad"
+              label="Clave.- Descripcion de Unidad"></v-text-field>
           </v-col>
           <v-col cols="3" class="pa-1">
             <v-text-field variant="outlined" density="compact" label="Cantidad" v-model="conceptoClass.cantidad"
@@ -48,18 +53,16 @@
               :rules="[rules.requerido]"></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1">
-            <v-textarea variant="outlined" label="Descripcion" rows="3" counter="1000" no-resize
-              v-model="conceptoClass.descripcion" :rules="[rules.requerido]"></v-textarea>
-          </v-col>
-          <v-col cols="12" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Objeto Impuesto" :items="itemsObjetoImp"
               :item-title="titleAutoComplete" item-value="codigo" v-model="conceptoClass.idObjetoImp"
               :rules="[rules.requerido]"></v-autocomplete>
           </v-col>
-          <v-col cols="4 mb-4">
-            <v-btn variant="tonal" color="info" @click="guardarPrecargado">Guardar como precargado</v-btn>
+          <v-col cols="4" class="mb-4 pa-1" v-if="props.propConcepto == null">
+            <v-btn variant="tonal" block color="primary" @click="guardarPrecargado">
+              Guardar Precargado
+            </v-btn>
           </v-col>
-          <v-col cols="8 mb-4">
+          <v-col :cols="props.propConcepto == null ? 8 : 12" class="mb-4 pa-1">
             <v-btn variant="tonal" block color="success" @click="agregarConcepto">
               {{ btnText }}
             </v-btn>
@@ -69,17 +72,13 @@
     </v-card-text>
     {{ auxImp }}
   </v-card>
-  <!-- <v-dialog v-model="modelImpuesto">
-    <v-card>
-    </v-card>
-  </v-dialog> -->
-  <v-dialog v-model="conceptosPrecargadosDialog" width="900">
+  <v-dialog v-model="conceptosPrecargadosDialog" width="1000">
     <ConceptosPrecargados @emitConceptoPre="getEmitConceptoPre" />
   </v-dialog>
-  <v-dialog v-model="listClaveProdServDialog" width="900">
+  <v-dialog v-model="listClaveProdServDialog" width="1000">
     <ListaClaveProdServ :listClaveProdServDesc="desserts" @emitClaveProdServ="getEmitClaveProdServ"></ListaClaveProdServ>
   </v-dialog>
-  <v-dialog v-model="listClaveUnidadDialog" width="900">
+  <v-dialog v-model="listClaveUnidadDialog" width="1000">
     <ListaClaveUnidad :listClaveProdServDesc="desserts2" @emitClaveUnidad="getEmitClaveUnidad"></ListaClaveUnidad>
   </v-dialog>
   <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
@@ -125,10 +124,9 @@ const props = defineProps(["propConcepto"]);
 const emit = defineEmits(["setDatosConcepto", "actualizar", "closeConcepto"]);
 
 let auxImp = computed(() => {
-  if(conceptoClass.cantidad != null && conceptoClass.valorUnitario != null){
+  if (conceptoClass.cantidad != null && conceptoClass.valorUnitario != null) {
     let aux = Number(conceptoClass.cantidad) * Number(conceptoClass.valorUnitario);
     conceptoClass.importe = Number(aux).toFixed(2);
-    // return Number(aux).toFixed(2);
   }
 });
 
@@ -136,6 +134,8 @@ onMounted(() => {
   if (props.propConcepto != null) {
     btnText.value = "Editar";
     cargarDatos();
+  } else {
+    conceptoForm.value.reset();
   }
   getObjetoImp();
 });
@@ -259,7 +259,7 @@ function objetoConcepto() {
   if (arrayImpuestos.value != null) {
     obj.datosImpuesto = arrayImpuestos.value;
   }
-  if(props.propConcepto != null){
+  if (props.propConcepto != null) {
     obj.datosImpuesto = props.propConcepto.datosImpuesto;
   }
   return obj;
@@ -276,15 +276,40 @@ function mostrarSnack(color: any, msgSnack: any, time: any) {
   snack.value = true;
 }
 
-function guardarPrecargado(){
-  console.log("Guardad Precargado");
-  axios.post(appStore.link + "/ConceptosPrecargados/add")
-    .then((response) => {
-      console.log(response)
-    })
-    .catch((e) => {
-      console.log("Error al guardar precargado " + e)
-    })
+async function guardarPrecargado() {
+  let ruta = "/ConceptosPrecargados/add";
+  let obj = objetoConcepto();
+  if (obj.idObjetoImp == "01") {
+    let array = {
+      datosConcepto: [],
+      idEmpresa: null
+    };
+    array.datosConcepto = obj;
+    array.idEmpresa = appStore.empresa.id;
+    await axios
+      .post(appStore.link + ruta, array)
+      .then((response) => {
+        if (response.data == 0) {
+          // loader.value = false;
+          mostrarSnack("green", "Se guardo como precargado", 4500);
+          // emit("cerrarVentanaFacturacion");
+          // descargarArchivos(response.data.mensaje)
+        } else {
+          // loader.value = false;
+          mostrarSnack("error", response.data.mensaje, 5000);
+        }
+      })
+      .catch((e) => {
+        console.log("Fatal" + e);
+      });
+  } else {
+    obj.precargado = true;
+    emit("setDatosConcepto", obj);
+  }
+}
+
+function busquedaAvanzada(){
+  
 }
 
 defineExpose({

@@ -25,6 +25,11 @@ const routes = [
         path: 'facturas',
         name: 'Facturas',
         component: () => import('@/views/Facturas/Facturas.vue')
+      },
+      {
+        path: 'busqueda',
+        name: 'Busqueda',
+        component: () => import('@/components/busqueda/BusquedaAvanzada.vue')
       }
     ],
   },

@@ -5,20 +5,16 @@
       <v-form>
         <v-row no-gutters>
           <v-spacer></v-spacer>
-          <v-col cols="4">
-            <v-text-field
-              variant="solo"
-              density="compact"
-              placeholder="Buscar"
-              v-model="search"
-              append-icon="mdi-magnify"
-            ></v-text-field>
+          <v-col cols="8">
+            <v-text-field variant="outlined" density="compact" placeholder="Buscar en los resultados" v-model="search"
+              append-inner-icon="mdi-magnify"></v-text-field>
           </v-col>
           <v-col cols="12">
             <v-data-table :headers="headers" :items="desserts" :search="search">
               <template v-slot:item.actions="{ item }">
                 <v-btn size="small" color="success" @click="selecItem(item)">
                   <v-icon size="medium"> mdi-check </v-icon>
+                  <v-tooltip activator="parent" location="start">Seleccionar</v-tooltip>
                 </v-btn>
               </template>
             </v-data-table>
@@ -42,8 +38,12 @@ const headers: any = ref([
     key: "codigo",
   },
   {
-    title: "Descripcion",
+    title: "Nombre",
     key: "descripcion",
+  },
+  {
+    title: "Descripcion",
+    key: "nombre",
   },
   {
     title: "Actions",

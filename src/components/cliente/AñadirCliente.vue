@@ -44,6 +44,7 @@ import axios from "axios";
 import Rules from "@/class/Rules";
 
 const emit = defineEmits(["clienteAgregado"]);
+const props = defineProps(["arrayClienteProp"]);
 const appStore = storeApp();
 const rules = new Rules();
 const añadirClienteForm: any = ref(null);
@@ -59,6 +60,9 @@ let usoCfdi: any = ref();
 onMounted(() => {
   getRegimenFiscal();
   getUsoCfdi();
+  /* if(props.arrayClienteProp != undefined){
+    cargarDatos();
+  } */
 });
 
 async function agregarCliente() {
@@ -112,4 +116,13 @@ function objetoCliente() {
 function titleAutoComplete(item: any) {
   return item.codigo + " - " + item.descripcion;
 }
+
+/* function cargarDatos(){
+    nombre.value = props.arrayClienteProp.nombre;
+    rfc.value =  props.arrayClienteProp.rfc;
+    domicilioFiscal.value =  props.arrayClienteProp.domicilioFiscal;
+    regimenFiscal.value = props.arrayClienteProp.regimenFiscal;
+    usoCfdi.value = props.arrayClienteProp.usoCfdi;
+    console.log("Entro");
+} */
 </script>

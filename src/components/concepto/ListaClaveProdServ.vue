@@ -7,14 +7,9 @@
       <v-form>
         <v-row no-gutters>
           <v-spacer></v-spacer>
-          <v-col cols="4">
-            <v-text-field
-              variant="solo"
-              density="compact"
-              placeholder="Buscar"
-              v-model="search"
-              append-icon="mdi-magnify"
-            ></v-text-field>
+          <v-col cols="10">
+            <v-text-field variant="outlined" density="compact" placeholder="Buscar en los resultados" v-model="search"
+              append-inner-icon="mdi-magnify"></v-text-field>
           </v-col>
           <v-col cols="12">
             <v-data-table :headers="headers" :items="desserts" :search="search">
@@ -48,6 +43,10 @@ const headers: any = ref([
     key: "descripcion",
   },
   {
+    title: "Palabras Similares",
+    key: "palabrasSimilares"
+  },
+  {
     title: "Actions",
     key: "actions",
     sortable: false,
@@ -63,4 +62,7 @@ onMounted(() => {
 function selecItem(item: any) {
   emit("emitClaveProdServ", item);
 }
+
 </script>
+
+

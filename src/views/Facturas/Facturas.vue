@@ -89,25 +89,29 @@
               ">
               <v-btn class="mr-2" color="success" variant="tonal" @click="confirmarTimbrar(item)">
                 <v-icon size="large"> mdi-bell </v-icon>
+                <v-tooltip activator="parent" location="end">Timbrar Factura</v-tooltip>
               </v-btn>
               <v-btn class="mr-2" variant="tonal" color="indigo" @click="editarFactura(item)">
                 <v-icon size="large"> mdi-pencil </v-icon>
+                <v-tooltip activator="parent" location="end">Editar Factura</v-tooltip>
               </v-btn>
               <v-btn variant="tonal" color="error" @click="eliminarFactura(item)">
                 <v-icon size="large"> mdi-delete </v-icon>
+                <v-tooltip activator="parent" location="end">Eliminar</v-tooltip>
               </v-btn>
             </div>
             <!-- @vue-ignore -->
             <div v-if="item.datosComprobante.isTimbrado == true &&
-              item.datosComprobante.isCancelado == false
-              ">
+              item.datosComprobante.isCancelado == false">
               <v-btn class="mr-2" color="red-lighten-1" variant="tonal" @click="confirmaCancelar(item)">
                 <v-icon size="large"> mdi-bell-cancel </v-icon>
+                <v-tooltip activator="parent" location="end">Cancelar Factura</v-tooltip>
               </v-btn>
               <v-menu>
                 <template v-slot:activator="{ props }">
                   <v-btn variant="tonal" color="purple-lighten-3" v-bind="props">
                     <v-icon size="large"> mdi-dots-vertical </v-icon>
+                    <v-tooltip activator="parent" location="end">Desplegar Menú</v-tooltip>
                   </v-btn>
                 </template>
                 <v-list :lines="false">
@@ -127,12 +131,17 @@
           <template v-slot:expanded-row="{ columns, item }">
             <!-- @vue-ignore -->
             <tr v-for="i in item.datosConcepto">
-              <td class="bg-grey-lighten-3" :colspan="columns.length">
+              <!-- class="bg-grey-lighten-3" -->
+              <td :colspan="columns.length">
                 <div class="d-flex">
-                  <div>Descripcion: {{ i.descripcion }} -</div>
-                  <div>Valor Unitario: {{ i.valorUnitario }} -</div>
-                  <div>Importe: {{ i.importe }} -</div>
-                  <div>Descuento: {{ i.descuento }}</div>
+                  <div class="text-teal">Descripcion: {{ i.descripcion }} -</div>
+                  <div class="text-blue">Valor Unitario: {{ i.valorUnitario }} -</div>
+                  <div class="text-purple">Importe: {{ i.importe }} -</div>
+                  <div class="text-error">Descuento: {{ i.descuento }}</div>
+                  <v-divider class="mx-4" inset vertical></v-divider>
+                  <div class="text-indigo-lighten-1">Impuestos Trasladados: {{ trasladados(i.datosImpuesto) }} -</div>
+                  <div class="text-green">Impuestos Retenidos: {{ retenidos(i.datosImpuesto) }} -</div>
+                  <div>Total de impuestos: {{ totalImpuestos(i.datosImpuesto) }}</div>
                 </div>
               </td>
             </tr>
@@ -217,7 +226,7 @@ let facturas: any = ref([]);
 let page: any = ref(1);
 let totalElements: any = ref();
 let totalPages: any = ref();
-let itemsPerPage: any = ref(25);
+let itemsPerPage: any = ref(50);
 let tipoConsulta: any = ref(true);
 let tipoConsulta2: any = ref(false);
 let canceladas: any = ref(0);
@@ -328,31 +337,40 @@ async function getFacturas(pageNumber: any, tipo: any, tipo2: any) {
 
 async function getFacturasByUuidOrFechas(pageNumber: any) {
   contenidoTabla.value = false;
-  loading.value = true;
   let ruta = null;
-  if (column.value == 0) {
+  if (page.value > totalPages.value) {
+    pageNumber = 0;
+  }
+
+  if (column.value == 0 && buscarPor.value != undefined) {
+    loading.value = true;
     ruta = "/byUuid/" + buscarPor.value + "/" + tipoConsulta.value + "/" + tipoConsulta2.value + "/" + appStore.empresa.id;
     getConsultasByFilters(pageNumber, ruta)
   }
+
   if (column.value == 1) {
+    let inicioAux = "";
+    let finAux = "";
     if (fechaInicio.value != undefined && fechaFin.value != undefined) {
+      inicioAux = convert(fechaInicio.value);
+      finAux = convert(fechaFin.value);
       state.value = true;
     } else {
       state.value = false;
     }
-    let inicioAux = convert(fechaInicio.value);
-    let finAux = convert(fechaFin.value);
     if (inicioAux <= finAux) {
       fechasValidas.value = true;
     } else {
       fechasValidas.value = false;
     }
-    if (state.value && fechasValidas.value) {
+    if (state.value == true && fechasValidas.value == true) {
+      loading.value = true;
       ruta = "/byFechas/" + inicioAux + "/" + finAux + "/" + tipoConsulta.value + "/" + tipoConsulta2.value + "/" + appStore.empresa.id;
       getConsultasByFilters(pageNumber, ruta);
     }
   }
-  if (column.value == 2) {
+  if (column.value == 2 && totales.value != undefined) {
+    loading.value = true;
     ruta = "/byTotal/" + totales.value + "/" + tipoConsulta.value + "/" + tipoConsulta2.value + "/" + appStore.empresa.id
     getConsultasByFilters(pageNumber, ruta)
   }
@@ -365,7 +383,7 @@ async function getConsultasByFilters(pageNumber: any, ruta: any) {
       "/Comprobante" + ruta, {
       params: {
         page: pageNumber,
-        size: itemsPerPage.value,
+        size: 50,
       },
     })
     .then((response) => {
@@ -419,7 +437,13 @@ async function rutaAxios(tipoAxios: any, ruta: any, obj: any) {
     .then((response: any) => {
       if (response.data.status == 0) {
         loader.value = false;
-        mostrarSnack("success", response.data.mensaje, 3000);
+        if(response.data.mensaje != "Se cancelo el xml"){
+          mostrarSnack("green", "Se timbro con el uuid: " + response.data.mensaje, 5000);
+          descargarArchivos(response.data.mensaje)
+        }else{
+          mostrarSnack("success", response.data.mensaje, 3000);
+        }
+        
         getFacturas(page.value - 1, tipoConsulta.value, tipoConsulta2.value);
       } else {
         loader.value = false;
@@ -512,6 +536,7 @@ function eliminarFactura(item: any) {
 function editarFactura(item: any) {
   dialogFacturacion.value = true;
   propsEditarFactura.value = item;
+  console.log(propsEditarFactura.value)
   emitter.emit("editarAct", item);
 }
 
@@ -522,8 +547,13 @@ function mostrarSnack(color: any, msgSnack: any, time: any) {
   snack.value = true;
 }
 
-function cerrarVentanaFacturacion() {
+function cerrarVentanaFacturacion(msj: any) {
   dialogFacturacion.value = false;
+  if (msj != "Los datos se guardaron para timbrar despues") {
+    mostrarSnack("green", "Se timbro con el uuid: " + msj, 5000);
+  }else{
+    mostrarSnack("green", msj, 5000);
+  }
 }
 
 function formatDate(date: any) {
@@ -537,4 +567,51 @@ function convert(date: Date) {
     .toLocaleString("sv", { timeZone: "America/Mexico_City" })
     .replace(" ", "T");
 }
+
+function trasladados(item: any){
+  let imp = 0.0;
+  for(let i=0; i<item.length; i++){
+    if(item[i].isTrasladado == true){
+      imp += Number(item[i].importe);
+    }
+  }
+  return imp;
+}
+
+function retenidos(item: any){
+  let imp = 0.0;
+  for(let i=0; i<item.length; i++){
+    if(item[i].isTrasladado == false){
+      imp += Number(item[i].importe);
+    }
+  }
+  return imp;
+}
+
+function totalImpuestos(item: any){
+  return item.length;
+}
+
+async function descargarArchivos(uuid: any){
+  await axios({
+    url:
+      appStore.link +
+      "/Xml/descargarArchivos/" + uuid + "/" + appStore.empresa.id, 
+    method: "GET",
+    responseType: "blob",
+  })
+    .then((response) => {
+      let url = window.URL.createObjectURL(new Blob([response.data]));
+      let link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", uuid + ".zip");
+      document.body.appendChild(link);
+      link.click();
+    })
+    .catch((e) => {
+      console.log(e)
+    })
+}
+
+
 </script>

@@ -7,10 +7,15 @@
       <v-text-field class="pa-0 ma-0" density="compact" variant="filled" label="Buscar por Nombre o Rfc del cliente"
         hide-details append-inner-icon="mdi-magnify" v-model="nombreRfc" @click:append-inner="buscarPorNombreOrRfc"
         @keyup.enter="buscarPorNombreOrRfc"></v-text-field>
+      <!-- <v-divider class="mx-4" inset vertical></v-divider>
+      <v-btn @click="editarCliente" color="blue-lighten-2">
+        <v-icon size="large">mdi-pencil</v-icon>
+        <v-tooltip activator="parent" location="end">Editar Cliente</v-tooltip>
+      </v-btn> -->
       <v-divider class="mx-4" inset vertical></v-divider>
       <v-btn @click="agregarCliente" color="indigo">
         <v-icon size="x-large">mdi-plus</v-icon>
-        <v-tooltip activator="parent" location="end">Si tu cliente no aparece, crealo</v-tooltip>
+        <v-tooltip activator="parent" location="end">Añadir cliente</v-tooltip>
       </v-btn>
       <v-divider class="mx-4" inset vertical></v-divider>
       <v-icon :icon="showCliente ? 'mdi-chevron-up' : 'mdi-chevron-down'" @click="showCliente = !showCliente"></v-icon>
@@ -29,7 +34,7 @@
             </v-col>
             <v-col class="pa-1">
               <v-text-field variant="outlined" density="compact" label="RFC" v-model="clienteClass.rfc"
-                :rules="[rules.requerido]" ></v-text-field>
+                :rules="[rules.requerido]" readonly></v-text-field>
             </v-col>
           </v-row>
           <v-row no-gutters>
@@ -51,11 +56,11 @@
       </div>
     </v-expand-transition>
   </v-card>
-  <v-dialog v-model="listClientesDialog" width="900">
+  <v-dialog v-model="listClientesDialog" width="1200">
     <ListClientes :listClientes="desserts" @emitClientes="emitClientes"/>
   </v-dialog>
   <v-dialog v-model="dialogCliente" width="900">
-    <AñadirCliente @clienteAgregado="clienteAgregado" />
+    <AñadirCliente @clienteAgregado="clienteAgregado" :arrayClienteProp="arrayClienteProp"/>
   </v-dialog>
   <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
     {{ msg }}
@@ -63,7 +68,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, inject } from "vue";
+import { ref, inject } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
 import AñadirCliente from "./AñadirCliente.vue";
@@ -89,6 +94,7 @@ const snack: any = ref(false);
 let snackColor = "";
 let msg: String = "";
 let timeMensaje: any = ref();
+let arrayClienteProp: any = ref();
 
 emitter.on('editarAct', (item: any) => {
   clienteClass.nombre = item.datosReceptor.nombre;
@@ -169,6 +175,13 @@ function mostrarSnack(color: any, msgSnack: any, time: any) {
   msg = msgSnack;
   time = timeMensaje;
   snack.value = true;
+}
+
+function editarCliente(){
+  // console.log("Editar cliente");
+  dialogCliente.value = true;
+  arrayCliente.value = objetoConcepto();
+  arrayClienteProp.value = arrayCliente.value;
 }
 
 defineExpose({

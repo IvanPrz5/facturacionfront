@@ -43,6 +43,14 @@ const headers: any = ref([
     key: "rfc",
   },
   {
+    title: "Regimen Fiscal",
+    key: "regimenFiscal",
+  },
+  {
+    title: "Uso de CFDI",
+    key: "usoCfdi",
+  },
+  {
     title: "Actions",
     key: "actions",
     sortable: false,

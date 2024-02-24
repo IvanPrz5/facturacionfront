@@ -1,5 +1,10 @@
 <template>
   <v-row>
+    <v-col cols="12" class="d-flex align-center justify-center">
+      <div class="text-h5 font-weight-medium mb-2">
+        Selecciona la empresa para facturar
+      </div>
+    </v-col>
     <v-col v-for="i in empresas" :key="i" :cols="3">
       <v-card class="mb-1" @click="selecEmpresa(i)">
         <v-img cover height="250" src="https://cdn.vuetifyjs.com/images/cards/cooking.png"></v-img>
@@ -26,14 +31,18 @@
     </v-col>
   </v-row>
   <div style="position: fixed; right: 40px; bottom: 40px;">
-    <v-btn elevation="2" size="large" color="indigo" icon style="margin-top: 20px;" @click="aggEmpresa">
-      <v-icon>mdi-plus</v-icon>
-      <v-tooltip activator="parent" location="end">Crear Empresa</v-tooltip>
+    <v-btn elevation="2" size="large" color="indigo" style="margin-top: 20px;" @click="aggEmpresa">
+      <!-- <v-icon>mdi-plus</v-icon> -->
+      <!-- <v-tooltip activator="parent" location="end">Crear Empresa</v-tooltip> -->
+      Crear Empresa
     </v-btn>
   </div>
   <v-dialog v-model="crearEmpresa" width="900">
-    <CrearEmpresa @actualizarEmpresas="getEmpresas()"/>
+    <CrearEmpresa @actualizarEmpresas="actualizar()" @errorEmpresas="errorEmpresas()" />
   </v-dialog>
+  <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
+    {{ msg }}
+  </v-snackbar>
 </template>
 
 <script lang="ts" setup>
@@ -50,6 +59,11 @@ const appStore = storeApp();
 const router = useRouter();
 let empresas: any = ref([]);
 let crearEmpresa: any = ref(false);
+
+const snack: any = ref(false);
+let snackColor = "";
+let msg: String = "";
+let timeMensaje: any = ref();
 
 onMounted(() => {
   getEmpresas();
@@ -68,15 +82,32 @@ function getEmpresas() {
 
 function selecEmpresa(item: any) {
   localStorage.setItem("empresa", JSON.stringify(<Empresa>item));
-  appStore.empresa = <Empresa>item;
+  appStore.empresa = <Empresa> item;
   router.push({ path: "/facturacion" });
   if (appStore.empresa != null) {
-    emit("cerrarEmpresa")
+    emit("cerrarEmpresa");
   }
 }
 
+function actualizar(){
+  getEmpresas();
+  mostrarSnack("success", "La empresa se ha creado", 3000);
+  crearEmpresa.value = false;
+}
+
+function errorEmpresas(){
+  mostrarSnack("error", "Error al crear empresa", 3000);
+}
 
 function aggEmpresa(){
   crearEmpresa.value = true;
 }
+
+function mostrarSnack(color: any, msgSnack: any, time: any) {
+  snackColor = color;
+  msg = msgSnack;
+  timeMensaje = time;
+  snack.value = true;
+}
+
 </script>

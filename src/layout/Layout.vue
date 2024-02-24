@@ -11,18 +11,18 @@
         <v-tooltip activator="parent" location="end">Cambiar de Empresa</v-tooltip>
       </v-btn>
       <v-btn variant="text" icon="mdi-theme-light-dark" @click="darkMode"></v-btn>
-      <v-btn variant="text" icon="mdi-dots-vertical"></v-btn>
+      <v-btn variant="text" icon="mdi-logout" @click="cerrarSesion"></v-btn>
     </v-app-bar>
     <v-navigation-drawer v-if="appStore.empresa != null" v-model="drawer" permanent>
       <v-list>
-        <v-list-item prepend-avatar="https://randomuser.me/api/portraits/women/85.jpg" title="Sandra Adams"
-          subtitle="sandra_a88@gmailcom"></v-list-item>
+        <v-list-item prepend-avatar="/usuario.png" :title="appStore.usuario.nombre + ' ' + appStore.usuario.apPaterno"
+          :subtitle="appStore.usuario.email"></v-list-item>
       </v-list>
       <v-divider></v-divider>
       <v-list density="compact" nav>
         <v-list-item prepend-icon="mdi-text-box-plus" title="Facturación" to="/facturacion"></v-list-item>
         <v-list-item prepend-icon="mdi-text-box-multiple" title="Mis Facturas" to="/facturas"></v-list-item>
-        <v-list-item prepend-icon="mdi-account-multiple" title="Shared with me" value="shared" to="/empresas"></v-list-item>
+        <v-list-item prepend-icon="mdi-magnify" title="Busqueda" to="/busqueda"></v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-main>
@@ -66,7 +66,8 @@ onMounted(() => {
 function darkMode(){
   theme.global.name.value = theme.global.current.value.dark
     ? "light"
-    : "dark"
+    : "dark";
+    localStorage.setItem("theme", theme.global.name.value);
 }
 
 function cambiarEmpresa(){
@@ -75,5 +76,11 @@ function cambiarEmpresa(){
 
 function cerrarEmpresa(){
   dialogEmpresas.value = false;
+}
+
+function cerrarSesion(){
+  localStorage.clear();
+  appStore.token = "";
+  router.push({ path: "/login" });
 }
 </script>
