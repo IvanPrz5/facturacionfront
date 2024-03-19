@@ -6,11 +6,7 @@
       </v-col>
       <v-col cols="12">
         <!-- <div v-show="showComprobante"> -->
-        <Comprobante
-          ref="comprobante"
-          @abrirConcepto="crearConcepto"
-          :editarComprobanteProp="editarComprobanteProp"
-        >
+        <Comprobante ref="comprobante" @abrirConcepto="crearConcepto" :editarComprobanteProp="editarComprobanteProp">
         </Comprobante>
         <!-- </div> -->
       </v-col>
@@ -24,13 +20,8 @@
             </v-card-subtitle>
             <v-spacer></v-spacer>
             <v-divider class="mx-4" inset vertical></v-divider>
-            <v-btn
-              color="indigo"
-              @click="crearConcepto"
-              v-if="!facturaTimbrada || !editarProp"
-              append-icon="mdi-plus"
-              >Agregar Concepto</v-btn
-            >
+            <v-btn color="indigo" @click="crearConcepto" v-if="!facturaTimbrada || !editarProp"
+              append-icon="mdi-plus">Agregar Concepto</v-btn>
           </v-card-title>
           <v-card-text>
             <v-list>
@@ -39,8 +30,8 @@
                   <v-row no-gutters>
                     <v-col cols="1">
                       <v-list-item-subtitle class="pl-5 pt-3">{{
-                        item + 1
-                      }}</v-list-item-subtitle>
+          item + 1
+        }}</v-list-item-subtitle>
                     </v-col>
                     <v-col cols="9">
                       <v-list-item v-bind="props" :title="i.descripcion">
@@ -51,56 +42,32 @@
                           <h4 class="px-2 text-error">
                             Descuento : {{ i.descuento }},
                           </h4>
-                          <h4
-                            v-if="i.datosImpuesto.length > 0"
-                            class="px-2 text-orange"
-                          >
+                          <h4 v-if="i.datosImpuesto.length > 0" class="px-2 text-orange">
                             Impuesto: {{ (i.totalImp, getTotalConcepImp(i)) }}
                           </h4>
                           <h4 class="px-2 text-green">
                             Total :
                             {{
-                              totalConcepto(i.importe, i.descuento, i.totalImp)
-                            }}
+          totalConcepto(i.importe, i.descuento, i.totalImp)
+        }}
                           </h4>
                         </div>
                       </v-list-item>
                     </v-col>
                     <v-col cols="2" v-if="!facturaTimbrada || !editarProp">
-                      <v-btn
-                        v-if="i.idObjetoImp != '01'"
-                        variant="text"
-                        icon
-                        color="green-lighten-2"
-                        @click="crearImpuesto(i)"
-                      >
+                      <v-btn v-if="i.idObjetoImp != '01'" variant="text" icon color="green-lighten-2"
+                        @click="crearImpuesto(i)">
                         <v-icon>mdi-cash-plus</v-icon>
-                        <v-tooltip activator="parent" location="end"
-                          >Agregar Impuesto</v-tooltip
-                        >
+                        <v-tooltip activator="parent" location="end">Agregar Impuesto</v-tooltip>
                       </v-btn>
-                      <v-btn
-                        variant="text"
-                        icon
-                        color="blue-lighten-2"
-                        @click="editarConcepto(i)"
-                      >
+                      <v-btn variant="text" icon color="blue-lighten-2" @click="editarConcepto(i)">
                         <v-icon>mdi-pencil</v-icon>
-                        <v-tooltip activator="parent" location="end"
-                          >Editar Concepto</v-tooltip
-                        >
+                        <v-tooltip activator="parent" location="end">Editar Concepto</v-tooltip>
                       </v-btn>
-                      <v-btn
-                        v-if="arrayConceptos.length > 1"
-                        variant="text"
-                        icon
-                        color="red-lighten-2"
-                        @click="eliminarConcepto(i)"
-                      >
+                      <v-btn v-if="arrayConceptos.length > 1" variant="text" icon color="red-lighten-2"
+                        @click="eliminarConcepto(i)">
                         <v-icon>mdi-delete</v-icon>
-                        <v-tooltip activator="parent" location="end"
-                          >Eliminar Concepto</v-tooltip
-                        >
+                        <v-tooltip activator="parent" location="end">Eliminar Concepto</v-tooltip>
                       </v-btn>
                     </v-col>
                   </v-row>
@@ -132,56 +99,31 @@
                         <v-row no-gutters>
                           <v-col cols="1">
                             <v-list-item-subtitle class="pl-5 pt-3">{{
-                              item + 1
-                            }}</v-list-item-subtitle>
+          item + 1
+        }}</v-list-item-subtitle>
                           </v-col>
                           <v-col cols="9">
                             <v-list-item :title="codImpuesto(j.impuesto)">
                               <div class="d-flex">
-                                <v-list-item-subtitle
-                                  >Importe :
-                                  {{ j.importe }}</v-list-item-subtitle
-                                >
-                                <v-list-item-subtitle class="px-2"
-                                  >Base : {{ j.base }}</v-list-item-subtitle
-                                >
-                                <v-list-item-subtitle class="px-2"
-                                  >Tipo Factor :
-                                  {{ j.tipoFactor }}</v-list-item-subtitle
-                                >
-                                <v-list-item-subtitle class="px-2"
-                                  >Tasa ó Cuota :
-                                  {{ j.tasaCuota }}</v-list-item-subtitle
-                                >
+                                <v-list-item-subtitle>Importe :
+                                  {{ j.importe }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="px-2">Base : {{ j.base }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="px-2">Tipo Factor :
+                                  {{ j.tipoFactor }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="px-2">Tasa ó Cuota :
+                                  {{ j.tasaCuota }}</v-list-item-subtitle>
                               </div>
                             </v-list-item>
                           </v-col>
-                          <v-col
-                            cols="2"
-                            v-if="!facturaTimbrada || !editarProp"
-                          >
-                            <v-btn
-                              variant="text"
-                              icon
-                              color="indigo-lighten-2"
-                              @click="editarImpuesto(j, i)"
-                            >
+                          <v-col cols="2" v-if="!facturaTimbrada || !editarProp">
+                            <v-btn variant="text" icon color="indigo-lighten-2" @click="editarImpuesto(j, i)">
                               <v-icon>mdi-pencil-box-outline</v-icon>
-                              <v-tooltip activator="parent" location="end"
-                                >Editar Impuesto</v-tooltip
-                              >
+                              <v-tooltip activator="parent" location="end">Editar Impuesto</v-tooltip>
                             </v-btn>
-                            <v-btn
-                              v-if="i.datosImpuesto.length > 1"
-                              variant="text"
-                              icon
-                              color="purple-lighten-2"
-                              @click="eliminarImpuesto(j, i)"
-                            >
+                            <v-btn v-if="i.datosImpuesto.length > 1" variant="text" icon color="purple-lighten-2"
+                              @click="eliminarImpuesto(j, i)">
                               <v-icon>mdi-delete-circle-outline</v-icon>
-                              <v-tooltip activator="parent" location="end"
-                                >Eliminar Impuesto</v-tooltip
-                              >
+                              <v-tooltip activator="parent" location="end">Eliminar Impuesto</v-tooltip>
                             </v-btn>
                           </v-col>
                         </v-row>
@@ -200,56 +142,31 @@
                         <v-row no-gutters>
                           <v-col cols="1">
                             <v-list-item-subtitle class="pl-5 pt-3">{{
-                              item + 1
-                            }}</v-list-item-subtitle>
+          item + 1
+        }}</v-list-item-subtitle>
                           </v-col>
                           <v-col cols="9">
                             <v-list-item :title="codImpuesto(j.impuesto)">
                               <div class="d-flex">
-                                <v-list-item-subtitle v-if="!j.isTrasladado"
-                                  >Importe :
-                                  {{ j.importe }}</v-list-item-subtitle
-                                >
-                                <v-list-item-subtitle class="px-2"
-                                  >Base : {{ j.base }}</v-list-item-subtitle
-                                >
-                                <v-list-item-subtitle class="px-2"
-                                  >Tipo Factor :
-                                  {{ j.tipoFactor }}</v-list-item-subtitle
-                                >
-                                <v-list-item-subtitle class="px-2"
-                                  >Tasa ó Cuota :
-                                  {{ j.tasaCuota }}</v-list-item-subtitle
-                                >
+                                <v-list-item-subtitle v-if="!j.isTrasladado">Importe :
+                                  {{ j.importe }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="px-2">Base : {{ j.base }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="px-2">Tipo Factor :
+                                  {{ j.tipoFactor }}</v-list-item-subtitle>
+                                <v-list-item-subtitle class="px-2">Tasa ó Cuota :
+                                  {{ j.tasaCuota }}</v-list-item-subtitle>
                               </div>
                             </v-list-item>
                           </v-col>
-                          <v-col
-                            cols="2"
-                            v-if="!facturaTimbrada || !editarProp"
-                          >
-                            <v-btn
-                              variant="text"
-                              icon
-                              color="indigo-lighten-2"
-                              @click="editarImpuesto(j, i)"
-                            >
+                          <v-col cols="2" v-if="!facturaTimbrada || !editarProp">
+                            <v-btn variant="text" icon color="indigo-lighten-2" @click="editarImpuesto(j, i)">
                               <v-icon>mdi-pencil-box-outline</v-icon>
-                              <v-tooltip activator="parent" location="end"
-                                >Editar Impuesto</v-tooltip
-                              >
+                              <v-tooltip activator="parent" location="end">Editar Impuesto</v-tooltip>
                             </v-btn>
-                            <v-btn
-                              variant="text"
-                              icon
-                              color="purple-lighten-2"
-                              v-if="i.datosImpuesto.length > 1"
-                              @click="eliminarImpuesto(j, i)"
-                            >
+                            <v-btn variant="text" icon color="purple-lighten-2" v-if="i.datosImpuesto.length > 1"
+                              @click="eliminarImpuesto(j, i)">
                               <v-icon>mdi-delete-circle-outline</v-icon>
-                              <v-tooltip activator="parent" location="end"
-                                >Eliminar Impuesto</v-tooltip
-                              >
+                              <v-tooltip activator="parent" location="end">Eliminar Impuesto</v-tooltip>
                             </v-btn>
                           </v-col>
                         </v-row>
@@ -265,11 +182,7 @@
       <v-col cols="6" v-if="facturaTimbrada && editarProp">
         <v-btn color="indigo" @click="crearConcepto"> Agregar Concepto </v-btn>
       </v-col>
-      <v-col
-        cols="12"
-        class="d-flex"
-        v-if="(arrayConceptos.length > 0 && !facturaTimbrada) || !editarProp"
-      >
+      <v-col cols="12" class="d-flex" v-if="(arrayConceptos.length > 0 && !facturaTimbrada) || !editarProp">
         <!-- <v-spacer></v-spacer> -->
         <div style="display: flex; gap: 10px">
           <v-btn color="warning" @click="timbrarDespues">
@@ -278,34 +191,32 @@
           <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
         </div>
         <v-spacer></v-spacer>
-        <div class="d-flex flex-column">
-          <div>SubTotal : {{ resultados.subTotal }}</div>
-          <div>Trasladados : {{ resultados2 }}</div>
-          <div>Retenidos : {{ resultados3 }}</div>
-          <div style="color: red">Descuento : {{ resultados.descuento }}</div>
-          <div style="color: green">Total : {{ resultados.total }}</div>
-        </div>
+        <v-card class="elevation-5 mr-10 d-flex">
+          <v-card-text>
+            <h3 class="text-info">SubTotal :</h3>
+            <h3>Trasladados :</h3>
+            <h3>Retenidos :</h3>
+            <h3 style="color: red">Descuento :</h3>
+            <h3 style="color: green">Total :</h3>
+          </v-card-text>
+          <v-card-text style="display: flex; flex-direction: column; align-items: end;">
+            <h3 class="text-info">{{ resultados.subTotal }}</h3>
+            <h3>{{ resultados2 }}</h3>
+            <h3>{{ resultados3 }}</h3>
+            <h3 style="color: red">{{ resultados.descuento }}</h3>
+            <h3 style="color: green">{{ resultados.total }}</h3>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
     <v-dialog v-model="showConcepto" width="900">
-      <Concepto
-        ref="concepto"
-        :propConcepto="propConcepto"
-        @setDatosConcepto="getDatosConceptos"
-        @actualizar="actualizar"
-        @closeConcepto="cerrarConcepto"
-      />
+      <Concepto ref="concepto" :propConcepto="propConcepto" @setDatosConcepto="getDatosConceptos"
+        @actualizar="actualizar" @closeConcepto="cerrarConcepto" />
     </v-dialog>
     <v-dialog v-model="dialogImpuesto" width="900" persistent>
-      <Impuesto
-        ref="impuesto"
-        :propImporte="propImporte"
-        :propImpuesto="propImpuesto"
-        :propTabla="propTabla"
-        @closeImpuesto="cerrarImpuesto"
-        @actualizarImpuesto="actualizarImpuesto"
-        @setDatosImpuesto="getDatosImpuestos"
-      />
+      <Impuesto ref="impuesto" :propImporte="propImporte" :propImpuesto="propImpuesto" :propTabla="propTabla"
+        @closeImpuesto="cerrarImpuesto" @actualizarImpuesto="actualizarImpuesto"
+        @setDatosImpuesto="getDatosImpuestos" />
     </v-dialog>
     <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
       {{ msg }}
@@ -314,12 +225,7 @@
       <v-card color="indigo">
         <v-card-text class="d-flex flex-column align-center mx-5 mt-3 mb-5">
           Por favor espere.
-          <v-progress-circular
-            :size="70"
-            :width="7"
-            color="warning"
-            indeterminate
-          ></v-progress-circular>
+          <v-progress-circular :size="70" :width="7" color="warning" indeterminate></v-progress-circular>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -606,7 +512,7 @@ function editarImpuesto(imp: any, concep: any) {
 function actualizarImpuesto(item: any) {
   Object.assign(
     arrayConceptos.value[conceptoIndex.value].datosImpuesto[
-      impuestoIndex.value
+    impuestoIndex.value
     ],
     item
   );
@@ -647,7 +553,7 @@ function getTotalConcepTras(item: any) {
       aux += Number(arrayConceptos.value[index].datosImpuesto[j].importe);
     }
   }
-  arrayConceptos.value[index].totalTras = Number(aux).toFixed(2);
+  return arrayConceptos.value[index].totalTras = Number(aux).toFixed(2);
 }
 
 function getTotalConcepRete(item: any) {
@@ -658,7 +564,7 @@ function getTotalConcepRete(item: any) {
       aux += Number(arrayConceptos.value[index].datosImpuesto[j].importe);
     }
   }
-  arrayConceptos.value[index].totalRete = Number(aux).toFixed(2);
+  return arrayConceptos.value[index].totalRete = Number(aux).toFixed(2);
 }
 
 function getTotalConcepImp(item: any) {
@@ -668,6 +574,7 @@ function getTotalConcepImp(item: any) {
     Number(arrayConceptos.value[index].totalTras) +
     -Number(arrayConceptos.value[index].totalRete);
   arrayConceptos.value[index].totalImp = Number(aux).toFixed(2);
+  return aux.toFixed(2);
 }
 
 function totalConcepto(a: any, b: any, c: any) {
@@ -726,10 +633,10 @@ async function descargarArchivos(uuid: any, datosFactura: any) {
   await axios
     .post(
       appStore.link +
-        "/Xml/descargarArchivos/" +
-        uuid +
-        "/" +
-        appStore.empresa.id,
+      "/Xml/descargarArchivos/" +
+      uuid +
+      "/" +
+      appStore.empresa.id,
       datosFactura,
       {
         responseType: "blob",
