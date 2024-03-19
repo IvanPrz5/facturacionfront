@@ -4,13 +4,13 @@
       <v-col cols="4">
         <v-menu v-model="menu" location="end" :close-on-content-click="false">
           <template v-slot:activator="{ props }">
-            <v-btn color="indigo" v-bind="props"> Buscar Por </v-btn>
+            <v-btn color="primary" v-bind="props"> Buscar Por </v-btn>
           </template>
-          <v-card width="600">
+          <v-card width="600" variant="tonal">
             <v-radio-group v-model="column">
               <v-radio :value="0">
                 <template v-slot:label>
-                  <div>Buscar por <strong class="text-success"> uuid, rfc </strong></div>
+                  <div>Buscar por <strong class="text-primary"> uuid, rfc </strong></div>
                 </template>
               </v-radio>
               <v-radio :value="1">
@@ -32,12 +32,18 @@
               </v-list-item>
               <v-list-item v-if="column == 1">
                 <div class="mx-3 mb-2 d-flex">
-                  <VueDatepicker v-model="fechaInicio" auto-apply :enable-time-picker="false" :format="formatDate"
+                  <div>
+                    <span>Fecha Inicio</span>
+                    <VueDatepicker v-model="fechaInicio" auto-apply :enable-time-picker="false" :format="formatDate"
                     :start-time="startTime" locale="es-MX" :state="state" teleport-center hide-input-icon
                     :inline="{ input: true }" />
-                  <VueDatepicker v-model="fechaFin" auto-apply :enable-time-picker="false" :min-date="fechaInicio"
+                  </div>
+                  <div>
+                    Fecha de Fin
+                    <VueDatepicker v-model="fechaFin" auto-apply :enable-time-picker="false" :min-date="fechaInicio"
                     :format="formatDate" :start-time="endTime" locale="es-MX" :state="state" teleport-center
                     hide-input-icon :inline="{ input: true }" />
+                  </div>
                 </div>
               </v-list-item>
               <v-list-item v-if="column == 2">
@@ -85,13 +91,12 @@
           <template v-slot:item.actions="{ item }">
             <!-- @vue-ignore -->
             <div v-if="item.datosComprobante.isTimbrado == false &&
-              item.datosComprobante.isCancelado == false
-              ">
+              item.datosComprobante.isCancelado == false">
               <v-btn class="mr-2" color="success" variant="tonal" @click="confirmarTimbrar(item)">
                 <v-icon size="large"> mdi-bell </v-icon>
                 <v-tooltip activator="parent" location="end">Timbrar Factura</v-tooltip>
               </v-btn>
-              <v-btn class="mr-2" variant="tonal" color="indigo" @click="editarFactura(item)">
+              <v-btn class="mr-2" variant="tonal" color="info" @click="editarFactura(item)">
                 <v-icon size="large"> mdi-pencil </v-icon>
                 <v-tooltip activator="parent" location="end">Editar Factura</v-tooltip>
               </v-btn>
@@ -193,7 +198,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, inject, watch } from "vue";
+import { ref, inject, watch } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
 import VueDatepicker from "@vuepic/vue-datepicker";
@@ -439,15 +444,15 @@ async function rutaAxios(tipoAxios: any, ruta: any, obj: any) {
         loader.value = false;
         if(response.data.mensaje != "Se cancelo el xml"){
           mostrarSnack("green", "Se timbro con el uuid: " + response.data.mensaje, 5000);
-          descargarArchivos(response.data.mensaje)
+          descargarArchivos(response.data.mensaje, itemTimbrarCancelar.value)
         }else{
           mostrarSnack("success", response.data.mensaje, 3000);
         }
-        
         getFacturas(page.value - 1, tipoConsulta.value, tipoConsulta2.value);
       } else {
         loader.value = false;
         mostrarSnack("error", response.data.mensaje, 5000);
+        getFacturas(page.value - 1, tipoConsulta.value, tipoConsulta2.value);
       }
     })
     .catch((e: any) => {
@@ -456,15 +461,8 @@ async function rutaAxios(tipoAxios: any, ruta: any, obj: any) {
 }
 
 async function descargarPdf(item: any) {
-  await axios({
-    url:
-      appStore.link +
-      "/Xml/descargarPdf/" +
-      item.datosComprobante.uuid +
-      "/" +
-      appStore.empresa.id,
-    method: "GET",
-    responseType: "blob",
+  await axios.post(appStore.link + "/Xml/descargarPdf/" + item.datosComprobante.uuid + "/" + appStore.empresa.id, item, {
+    responseType: "blob"
   })
     .then((response: any) => {
       let url = window.URL.createObjectURL(new Blob([response.data]));
@@ -536,7 +534,6 @@ function eliminarFactura(item: any) {
 function editarFactura(item: any) {
   dialogFacturacion.value = true;
   propsEditarFactura.value = item;
-  console.log(propsEditarFactura.value)
   emitter.emit("editarAct", item);
 }
 
@@ -592,14 +589,11 @@ function totalImpuestos(item: any){
   return item.length;
 }
 
-async function descargarArchivos(uuid: any){
-  await axios({
-    url:
-      appStore.link +
-      "/Xml/descargarArchivos/" + uuid + "/" + appStore.empresa.id, 
-    method: "GET",
-    responseType: "blob",
-  })
+async function descargarArchivos(uuid: any, item: any){
+  await axios
+    .post(appStore.link + "/Xml/descargarArchivos/" + uuid + "/" + appStore.empresa.id, item, {
+      responseType: "blob"
+    })
     .then((response) => {
       let url = window.URL.createObjectURL(new Blob([response.data]));
       let link = document.createElement("a");

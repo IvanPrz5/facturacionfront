@@ -4,4 +4,6 @@ export default class Usuario {
     apPaterno: any;
     email: any;  
     avatar: any; 
+    role: any;
+    empresas: any
 }

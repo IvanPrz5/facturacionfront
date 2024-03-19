@@ -5,4 +5,6 @@ export class Cliente{
     domicilioFiscal: any;
     regimenFiscal: any;
     usoCfdi: any
+    idUso: any;
+    idRegimenFiscal: any;
 }

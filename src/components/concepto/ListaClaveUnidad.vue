@@ -10,12 +10,17 @@
               append-inner-icon="mdi-magnify"></v-text-field>
           </v-col>
           <v-col cols="12">
-            <v-data-table :headers="headers" :items="desserts" :search="search">
+            <v-data-table v-model:page="page" :items-per-page="itemsPerPage" :headers="headers" :items="desserts" :search="search">
               <template v-slot:item.actions="{ item }">
                 <v-btn size="small" color="success" @click="selecItem(item)">
                   <v-icon size="medium"> mdi-check </v-icon>
                   <v-tooltip activator="parent" location="start">Seleccionar</v-tooltip>
                 </v-btn>
+              </template>
+              <template v-slot:bottom>
+                <div class="text-center pt-2">
+                  <v-pagination v-model="page" :length="pageCount"></v-pagination>
+                </div>
               </template>
             </v-data-table>
             <!-- <v-pagination></v-pagination> -->
@@ -27,7 +32,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 
 const props = defineProps(["listClaveProdServDesc"]);
 const emit = defineEmits(["emitClaveUnidad"]);
@@ -53,6 +58,13 @@ const headers: any = ref([
 ]);
 let desserts: any = ref([]);
 let search: any = ref("");
+
+let page: any = ref(1);
+let itemsPerPage: any = ref(50);
+
+const pageCount = computed(() => {
+  return Math.ceil(desserts.value.length / itemsPerPage.value);
+});
 
 onMounted(() => {
   desserts.value = props.listClaveProdServDesc;

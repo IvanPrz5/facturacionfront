@@ -33,7 +33,7 @@
           </v-col>
           <v-col cols="4" class="pa-1" v-if="impuestoClass.importe != 'NaN'">
             <v-text-field ariant="outlined" density="compact" label="Importe" v-model="impuestoClass.importe"
-              :rules="[rules.requerido]" readonly></v-text-field>
+              :rules="[rules.requerido]"></v-text-field>
           </v-col>
         </v-row>
       </v-form>

@@ -7,7 +7,7 @@
     </v-col>
     <v-col v-for="i in empresas" :key="i" :cols="3">
       <v-card class="mb-1" @click="selecEmpresa(i)">
-        <v-img cover height="250" src="https://cdn.vuetifyjs.com/images/cards/cooking.png"></v-img>
+        <v-img cover height="250" src="https://cdn.vuetifyjs.com/images/cards/road.jpg"></v-img>
         <v-card-item>
           <v-card-title>{{ i.nombre }}</v-card-title>
           <v-card-subtitle>
@@ -18,7 +18,7 @@
         <v-card-text>
           <v-row align="center" class="mx-0">
             <v-rating :model-value="4.5" color="amber" density="compact" half-increments readonly size="small"></v-rating>
-            <div class="text-grey ms-4">4.5 (413)</div>
+            <div class="text-grey ms-4">4.5 (413)</div> 
           </v-row>
         </v-card-text>
         <v-divider class="mx-4 mt-2 mb-2"></v-divider>
@@ -30,15 +30,15 @@
       </v-card>
     </v-col>
   </v-row>
-  <div style="position: fixed; right: 40px; bottom: 40px;">
+  <div style="position: fixed; right: 40px; bottom: 40px;" v-if="roleAdmin == true || roleJefe == true">
     <v-btn elevation="2" size="large" color="indigo" style="margin-top: 20px;" @click="aggEmpresa">
       <!-- <v-icon>mdi-plus</v-icon> -->
       <!-- <v-tooltip activator="parent" location="end">Crear Empresa</v-tooltip> -->
       Crear Empresa
     </v-btn>
   </div>
-  <v-dialog v-model="crearEmpresa" width="900">
-    <CrearEmpresa @actualizarEmpresas="actualizar()" @errorEmpresas="errorEmpresas()" />
+  <v-dialog v-model="crearEmpresa" width="900" persistent>
+    <CrearEmpresa @actualizarEmpresas="actualizar()" @errorEmpresas="errorEmpresas()" @cerrar="cerrar"/>
   </v-dialog>
   <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
     {{ msg }}
@@ -65,15 +65,20 @@ let snackColor = "";
 let msg: String = "";
 let timeMensaje: any = ref();
 
+let roleAdmin: any = ref(false);
+let roleJefe: any = ref(false);
+let roleAux: any = ref(false);
+
 onMounted(() => {
   getEmpresas();
+  getRole();
 });
 
 function getEmpresas() {
   axios
-    .get(appStore.link + "/Empresas/getAll")
+    .get(appStore.link + "/Usuarios/getEmpresas/" + appStore.usuario.id)
     .then((response) => {
-      empresas.value = response.data;
+      empresas.value = response.data[0].empresas;
     })
     .catch((e) => {
       console.log("Fatal " + e);
@@ -110,4 +115,21 @@ function mostrarSnack(color: any, msgSnack: any, time: any) {
   snack.value = true;
 }
 
+function getRole(){
+  for(let i=0; i<appStore.usuario.role.length; i++){
+    if(appStore.usuario.role[i].descripcion == 'ADMIN'){
+      roleAdmin.value = true;
+    }
+    if(appStore.usuario.role[i].descripcion == 'JEFE DE AREA'){
+      roleJefe.value = true;
+    }
+    if(appStore.usuario.role[i].descripcion == 'AUXILIAR'){
+      roleAux.value = true;
+    }
+  }
+}
+
+function cerrar(){
+  crearEmpresa.value = false;
+}
 </script>

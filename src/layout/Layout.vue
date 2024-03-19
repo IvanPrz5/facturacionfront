@@ -6,7 +6,7 @@
       <v-spacer></v-spacer>
       <div v-if="appStore.empresa != null" class="mt-4 text-subtitle-2">{{ appStore.empresa.nombre }}</div>
       <v-spacer></v-spacer>
-      <v-btn v-if="appStore.empresa != null"  variant="text" icon @click="cambiarEmpresa">
+      <v-btn v-if="appStore.empresa != null" variant="text" icon @click="cambiarEmpresa">
         <v-icon>mdi-briefcase-arrow-left-right</v-icon>
         <v-tooltip activator="parent" location="end">Cambiar de Empresa</v-tooltip>
       </v-btn>
@@ -20,9 +20,15 @@
       </v-list>
       <v-divider></v-divider>
       <v-list density="compact" nav>
-        <v-list-item prepend-icon="mdi-text-box-plus" title="Facturación" to="/facturacion"></v-list-item>
+        <v-list-item prepend-icon="mdi-text-box-plus" title="Facturación" @click="toFacturacion"></v-list-item>
         <v-list-item prepend-icon="mdi-text-box-multiple" title="Mis Facturas" to="/facturas"></v-list-item>
-        <v-list-item prepend-icon="mdi-magnify" title="Busqueda" to="/busqueda"></v-list-item>
+        <v-list-group v-if="roleAdmin == true">
+          <template v-slot:activator="{ props }">
+            <v-list-item v-bind="props" prepend-icon="mdi-account-cog" title="Configuracion General"></v-list-item>
+          </template>
+          <v-list-item prepend-icon="mdi-account" title="Usuarios" to="/usuarios"></v-list-item>
+        </v-list-group>
+        <!-- {{ appStore.usuario.role }} -->
       </v-list>
     </v-navigation-drawer>
     <v-main>
@@ -35,7 +41,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeMount } from "vue";
+import { ref, onMounted, onBeforeMount, inject } from "vue";
 import { useRouter } from "vue-router";
 import { useTheme } from "vuetify";
 import { storeApp } from '@/store/app';
@@ -43,9 +49,14 @@ import EmpresasCards from "@/components/empresas/EmpresasCards.vue";
 
 const appStore = storeApp();
 const router = useRouter();
+const emitter: any = inject("emitter");
 const theme = useTheme();
+
 let drawer: any = ref(true);
 let dialogEmpresas: any = ref(false);
+let roleAdmin: any = ref(false);
+let roleJefe: any = ref(false);
+let roleAux: any = ref(false);
 
 onBeforeMount(() => {
   const token = localStorage.getItem("token");
@@ -61,26 +72,47 @@ onBeforeMount(() => {
 
 onMounted(() => {
   // getMenu()
+  getRole();
 });
 
-function darkMode(){
+function darkMode() {
   theme.global.name.value = theme.global.current.value.dark
     ? "light"
     : "dark";
-    localStorage.setItem("theme", theme.global.name.value);
+  localStorage.setItem("theme", theme.global.name.value);
 }
 
-function cambiarEmpresa(){
+function cambiarEmpresa() {
   dialogEmpresas.value = true;
 }
 
-function cerrarEmpresa(){
+function cerrarEmpresa() {
   dialogEmpresas.value = false;
 }
 
-function cerrarSesion(){
+function cerrarSesion() {
   localStorage.clear();
   appStore.token = "";
   router.push({ path: "/login" });
 }
+
+function getRole() {
+  for (let i = 0; i < appStore.usuario.role.length; i++) {
+    if (appStore.usuario.role[i].descripcion == 'ADMIN') {
+      roleAdmin.value = true;
+    }
+    if (appStore.usuario.role[i].descripcion == 'JEFE DE AREA') {
+      roleJefe.value = true;
+    }
+    if (appStore.usuario.role[i].descripcion == 'AUXILIAR') {
+      roleAux.value = true;
+    }
+  }
+}
+
+function toFacturacion() {
+  router.push({ path: "/facturacion" });
+  emitter.emit("emitReset");
+}
+
 </script>

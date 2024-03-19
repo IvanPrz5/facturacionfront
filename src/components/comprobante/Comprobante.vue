@@ -44,10 +44,12 @@
                 :rules="[rules.requerido]"></v-autocomplete>
             </v-col>
             <v-col cols="6" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Folio" v-model="comprobanteClass.folio"></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="Folio"
+                v-model="comprobanteClass.folio"></v-text-field>
             </v-col>
             <v-col cols="6" class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Serie" v-model="comprobanteClass.serie"></v-text-field>
+              <v-text-field variant="outlined" density="compact" label="Serie"
+                v-model="comprobanteClass.serie"></v-text-field>
             </v-col>
           </v-row>
         </v-form>
@@ -62,6 +64,7 @@ import { storeApp } from "@/store/app";
 import axios from "axios";
 import Rules from "@/class/Rules";
 
+const props = defineProps(["propsEditarFactura", "editarComprobanteProp"]);
 const emit = defineEmits(["abrirConcepto"]);
 
 const appStore = storeApp();
@@ -82,10 +85,21 @@ emitter.on('editarAct', (item: any) => {
   comprobanteClass.idExportacion = item.datosComprobante.idExportacion;
   comprobanteClass.idFormaPago = item.datosComprobante.idFormaPago;
   comprobanteClass.idMetodoPago = item.datosComprobante.idMetodoPago;
-  if(item.datosComprobante.folio != null && item.datosComprobante.serie != null){
+  if (item.datosComprobante.folio != null && item.datosComprobante.serie != null) {
     comprobanteClass.folio = item.datosComprobante.folio;
     comprobanteClass.serie = item.datosComprobante.serie;
   }
+});
+
+emitter.on('emitReset', () => {
+  comprobanteClass.idTipoComprobante = null;
+  comprobanteClass.idExportacion = null;
+  comprobanteClass.idFormaPago = null;
+  comprobanteClass.idMetodoPago = null;
+  // if(item.datosComprobante.folio != null && item.datosComprobante.serie != null){
+  comprobanteClass.folio = null;
+  comprobanteClass.serie = null;
+  // }
 });
 
 onMounted(() => {
@@ -118,8 +132,7 @@ function getExportacion() {
 }
 
 function getFormaPago() {
-  axios
-    .get(appStore.link + "/FormaPago/get")
+  axios.get(appStore.link + "/FormaPago/get")
     .then((response) => {
       itemsFormaPago.value = response.data;
     })
@@ -129,8 +142,7 @@ function getFormaPago() {
 }
 
 function getMetodoPago() {
-  axios
-    .get(appStore.link + "/MetodoPago/get")
+  axios.get(appStore.link + "/MetodoPago/get")
     .then((response) => {
       itemsMetodoPago.value = response.data;
     })
@@ -141,11 +153,11 @@ function getMetodoPago() {
 
 async function setDatosComprobante() {
   const { valid } = await comprobanteForm.value.validate();
-  if(valid){
+  if (valid) {
     comprobanteClass.lugarExpedicion = appStore.empresa.codPostal;
     arrayComprobante.value = comprobanteClass;
     return arrayComprobante.value;
-  }else{
+  } else {
     return null;
   }
 }

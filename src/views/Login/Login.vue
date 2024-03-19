@@ -16,7 +16,7 @@
           </v-col>
         </v-row>
       </v-form>
-      <v-btn block class="mb-5" color="info" size="large" variant="tonal" @click="login">
+      <v-btn block class="mb-5" color="primary" size="large" variant="tonal" @click="login">
         Iniciar Sesión
       </v-btn>
       <!-- <v-card-text class="text-center registerLink">
@@ -47,7 +47,7 @@ const formLogin: any = ref(null);
 let visible: any = ref(false);
 let snack: any = ref(false);
 let credenciales: any = ref({
-  email: "admin@gmail.com",
+  email: "cristianmartinez@ceag.com.mx",
   password: "admin",
 });
 

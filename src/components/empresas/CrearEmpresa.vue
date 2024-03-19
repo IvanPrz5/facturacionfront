@@ -8,11 +8,11 @@
             <v-text-field variant="outlined" density="compact" label="Nombre" v-model="empresa.nombre" :rules="[rules.requerido]"></v-text-field>
           </v-col>
           <v-col cols="6" class="pa-1">
-            <v-text-field variant="outlined" density="compact" label="RFC" v-model="empresa.rfc" :rules="[rules.requerido]"></v-text-field>
+            <v-text-field variant="outlined" density="compact" label="RFC" v-model="empresa.rfc" :rules="[rules.requerido, rules.minimoDeCaracteres(empresa.rfc, 11), rules.maximoDeCaracteres(empresa.rfc, 13)]"></v-text-field>
           </v-col>
           <v-col cols="4" class="pa-1">
             <v-text-field variant="outlined" density="compact" label="Codigo Postal"
-              v-model="empresa.codPostal" :rules="[rules.requerido]"></v-text-field>
+              v-model="empresa.codPostal" :rules="[rules.requerido, rules.totalCaracteres(empresa.codPostal, 5)]"></v-text-field>
           </v-col>
           <v-col cols="8" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Regimen Fiscal" v-model="empresa.regimenFiscal"
@@ -33,9 +33,12 @@
           </v-col>
           <v-col cols="12" class="pa-1">
             <v-file-input variant="outlined" density="compact" accept="image/png, image/jpeg, image/bmp"
-              prepend-icon="mdi-camera" label="Logo" v-model="logo" :rules="[rules.requerido]"></v-file-input>
+              prepend-icon="mdi-camera" label="Logo" v-model="logo"></v-file-input>
           </v-col>
-          <v-col cols="12 mb-4">
+          <v-col cols="4 mb-4" class="px-1">
+            <v-btn variant="tonal" block color="error" @click="cerrar">Cancelar</v-btn>
+          </v-col>
+          <v-col cols="8 mb-4" class="px-1">
             <v-btn variant="tonal" block color="success" @click="crearEmpresa">Crear Empresa</v-btn>
           </v-col>
         </v-row>
@@ -50,7 +53,7 @@ import { storeApp } from "@/store/app";
 import Rules from "@/class/Rules";
 import axios from 'axios';
 
-const emit = defineEmits(["actualizarEmpresas", "errorEmpresas"]);
+const emit = defineEmits(["actualizarEmpresas", "errorEmpresas", "cerrar"]);
 
 const appStore = storeApp();
 const rules = new Rules();
@@ -105,14 +108,17 @@ async function crearEmpresa() {
     
     arrayFiles.value.push(cerB64.value[0]);
     arrayFiles.value.push(keyB64.value[0]);
-    arrayFiles.value.push(logo.value[0]);
+    if(logo.value != null){
+      arrayFiles.value.push(logo.value[0]);
+    }
 
     for(let i=0; i<arrayFiles.value.length; i++){
       formData.append("file", arrayFiles.value[i]);
     }
+
     formData.append("doc", blob);
     axios
-      .post(appStore.link + "/Empresas/add", formData, {
+      .post(appStore.link + "/Empresas/add/" + appStore.usuario.id, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
@@ -129,5 +135,9 @@ async function crearEmpresa() {
 
 function titleAutoComplete(item: any) {
   return item.codigo + " - " + item.descripcion;
+}
+
+function cerrar(){
+  emit("cerrar");
 }
 </script>

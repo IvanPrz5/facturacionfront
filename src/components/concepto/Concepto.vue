@@ -38,11 +38,11 @@
           </v-col>
           <v-col cols="3" class="pa-1">
             <v-text-field variant="outlined" density="compact" label="Cantidad" v-model="conceptoClass.cantidad"
-              :rules="[rules.requerido]"></v-text-field>
+              :rules="[rules.requerido, rules.numero]"></v-text-field>
           </v-col>
           <v-col cols="3" class="pa-1">
             <v-text-field variant="outlined" density="compact" label="Valor Unitario"
-              v-model="conceptoClass.valorUnitario" :rules="[rules.requerido]"></v-text-field>
+              v-model="conceptoClass.valorUnitario" :rules="[rules.requerido, rules.numero]"></v-text-field>
           </v-col>
           <v-col cols="3" class="pa-1">
             <v-text-field variant="outlined" density="compact" label="Importe" v-model="conceptoClass.importe"
@@ -50,16 +50,16 @@
           </v-col>
           <v-col cols="3" class="pa-1">
             <v-text-field variant="outlined" density="compact" label="Descuento" v-model="conceptoClass.descuento"
-              :rules="[rules.requerido]"></v-text-field>
+              :rules="[rules.requerido, rules.numero]"></v-text-field>
           </v-col>
           <v-col cols="12" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Objeto Impuesto" :items="itemsObjetoImp"
               :item-title="titleAutoComplete" item-value="codigo" v-model="conceptoClass.idObjetoImp"
-              :rules="[rules.requerido]"></v-autocomplete>
+              ></v-autocomplete>
           </v-col>
           <v-col cols="4" class="mb-4 pa-1" v-if="props.propConcepto == null">
             <v-btn variant="tonal" block color="primary" @click="guardarPrecargado">
-              Guardar Precargado
+              Guardar Como Precargado
             </v-btn>
           </v-col>
           <v-col :cols="props.propConcepto == null ? 8 : 12" class="mb-4 pa-1">
@@ -76,7 +76,7 @@
     <ConceptosPrecargados @emitConceptoPre="getEmitConceptoPre" />
   </v-dialog>
   <v-dialog v-model="listClaveProdServDialog" width="1000">
-    <ListaClaveProdServ :listClaveProdServDesc="desserts" @emitClaveProdServ="getEmitClaveProdServ"></ListaClaveProdServ>
+    <ListaClaveProdServ :propBusquedaAvanzada="propBusquedaAvanzada" :listClaveProdServDesc="desserts" @emitClaveProdServ="getEmitClaveProdServ"></ListaClaveProdServ>
   </v-dialog>
   <v-dialog v-model="listClaveUnidadDialog" width="1000">
     <ListaClaveUnidad :listClaveProdServDesc="desserts2" @emitClaveUnidad="getEmitClaveUnidad"></ListaClaveUnidad>
@@ -98,6 +98,7 @@ import ListaClaveUnidad from "./ListaClaveUnidad.vue";
 
 const appStore = storeApp();
 const rules = new Rules();
+
 const conceptoForm: any = ref(null);
 const itemsObjetoImp: any = ref([]);
 const conceptoClass = appStore.concepto;
@@ -108,6 +109,7 @@ let showConcepto: any = ref(true);
 let conceptosPrecargadosDialog: any = ref(false);
 let listClaveProdServDialog: any = ref(false);
 let listClaveUnidadDialog: any = ref(false);
+
 let codClaveProdServ: any = ref();
 let codClaveUnidad: any = ref();
 
@@ -118,7 +120,12 @@ let timeMensaje: any = ref();
 
 let arrayImpuestos: any = ref([]);
 
-let btnText: any = ref("Agregar");
+let btnText: any = ref("Añadir concepto a la factura");
+let propBusquedaAvanzada: any = ref(false);
+
+let nameRules = [
+  (v: any) => !!v || 'Requerido',
+];
 
 const props = defineProps(["propConcepto"]);
 const emit = defineEmits(["setDatosConcepto", "actualizar", "closeConcepto"]);
@@ -162,6 +169,7 @@ function getClaveProdServ() {
       if (response.data.length > 1) {
         listClaveProdServDialog.value = true;
         desserts.value = response.data;
+        propBusquedaAvanzada.value = false;
       } else {
         conceptoClass.idClaveProdServ =
           response.data[0].codigo + ".- " + response.data[0].descripcion;
@@ -277,39 +285,45 @@ function mostrarSnack(color: any, msgSnack: any, time: any) {
 }
 
 async function guardarPrecargado() {
-  let ruta = "/ConceptosPrecargados/add";
-  let obj = objetoConcepto();
-  if (obj.idObjetoImp == "01") {
-    let array = {
-      datosConcepto: [],
-      idEmpresa: null
-    };
-    array.datosConcepto = obj;
-    array.idEmpresa = appStore.empresa.id;
-    await axios
-      .post(appStore.link + ruta, array)
-      .then((response) => {
-        if (response.data == 0) {
-          // loader.value = false;
-          mostrarSnack("green", "Se guardo como precargado", 4500);
-          // emit("cerrarVentanaFacturacion");
-          // descargarArchivos(response.data.mensaje)
-        } else {
-          // loader.value = false;
-          mostrarSnack("error", response.data.mensaje, 5000);
-        }
-      })
-      .catch((e) => {
-        console.log("Fatal" + e);
-      });
-  } else {
-    obj.precargado = true;
-    emit("setDatosConcepto", obj);
+  const { valid } = await conceptoForm.value.validate();
+  if (valid) {
+    let ruta = "/ConceptosPrecargados/add";
+    let obj = objetoConcepto();
+    if (obj.idObjetoImp == "01") {
+      let array = {
+        datosConcepto: [],
+        idEmpresa: null
+      };
+      array.datosConcepto = obj;
+      array.idEmpresa = appStore.empresa.id;
+      await axios
+        .post(appStore.link + ruta, array)
+        .then((response) => {
+          if (response.data == 0) {
+            // loader.value = false;
+            console.log("entro aca")
+            mostrarSnack("green", "Se guardo como precargado", 4500);
+            emit("setDatosConcepto", obj);
+            // emit("cerrarVentanaFacturacion");
+            // descargarArchivos(response.data.mensaje)
+          } else {
+            // loader.value = false;
+            mostrarSnack("error", response.data.mensaje, 5000);
+          }
+        })
+        .catch((e) => {
+          console.log("Fatal" + e);
+        });
+    } else {
+      obj.precargado = true;
+      emit("setDatosConcepto", obj);
+    }
   }
 }
 
 function busquedaAvanzada(){
-  
+  listClaveProdServDialog.value = true;
+  propBusquedaAvanzada.value = true;
 }
 
 defineExpose({

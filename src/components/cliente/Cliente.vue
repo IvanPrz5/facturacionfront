@@ -2,21 +2,20 @@
   <v-card variant="tonal">
     <v-card-title class="d-flex">
       Cliente
-      <v-card-subtitle class="mt-2">  {{ clienteClass.nombre }} </v-card-subtitle>
+      <v-card-subtitle class="mt-2"> {{ clienteClass.nombre }} </v-card-subtitle>
       <v-spacer></v-spacer>
-      <v-text-field class="pa-0 ma-0" density="compact" variant="filled" label="Buscar por Nombre o Rfc del cliente"
+      <!-- <v-text-field class="pa-0 ma-0" density="compact" variant="filled" label="Buscar por Nombre o Rfc del cliente"
         hide-details append-inner-icon="mdi-magnify" v-model="nombreRfc" @click:append-inner="buscarPorNombreOrRfc"
-        @keyup.enter="buscarPorNombreOrRfc"></v-text-field>
-      <!-- <v-divider class="mx-4" inset vertical></v-divider>
-      <v-btn @click="editarCliente" color="blue-lighten-2">
-        <v-icon size="large">mdi-pencil</v-icon>
-        <v-tooltip activator="parent" location="end">Editar Cliente</v-tooltip>
-      </v-btn> -->
+        @keyup.enter="buscarPorNombreOrRfc"></v-text-field> -->
       <v-divider class="mx-4" inset vertical></v-divider>
-      <v-btn @click="agregarCliente" color="indigo">
-        <v-icon size="x-large">mdi-plus</v-icon>
-        <v-tooltip activator="parent" location="end">Añadir cliente</v-tooltip>
+      <v-btn @click="listaClientes" color="indigo">
+        Ver Clientes
       </v-btn>
+      <v-divider class="mx-4" inset vertical></v-divider>
+      <v-btn @click="agregarCliente" color="indigo" append-icon="mdi-plus">Añadir</v-btn>
+      <v-divider class="mx-4" inset vertical></v-divider>
+      <v-btn v-if="clienteClass.nombre != null" @click="editarCliente" color="indigo"
+        append-icon="mdi-plus">Editar</v-btn>
       <v-divider class="mx-4" inset vertical></v-divider>
       <v-icon :icon="showCliente ? 'mdi-chevron-up' : 'mdi-chevron-down'" @click="showCliente = !showCliente"></v-icon>
     </v-card-title>
@@ -48,8 +47,11 @@
                 v-model="clienteClass.regimenFiscal" :rules="[rules.requerido]" readonly></v-text-field>
             </v-col>
             <v-col class="pa-1">
-              <v-text-field variant="outlined" density="compact" label="Uso CFDI" v-model="clienteClass.usoCfdi"
-                :rules="[rules.requerido]" readonly></v-text-field>
+              <v-autocomplete variant="outlined" density="compact" label="Uso CFDI" v-model="clienteClass.usoCfdi"
+                :rules="[rules.requerido]" :items="itemsUsoCfdi" :item-title="titleAutoComplete"
+                item-value="codigo"></v-autocomplete>
+              <!-- <v-text-field variant="outlined" density="compact" label="Uso CFDI" v-model="clienteClass.usoCfdi"
+                :rules="[rules.requerido]" readonly></v-text-field> -->
             </v-col>
           </v-row>
         </v-form>
@@ -57,10 +59,11 @@
     </v-expand-transition>
   </v-card>
   <v-dialog v-model="listClientesDialog" width="1200">
-    <ListClientes :listClientes="desserts" @emitClientes="emitClientes"/>
+    <ListClientes :listClientes="desserts" @emitClientes="emitClientes" />
   </v-dialog>
   <v-dialog v-model="dialogCliente" width="900">
-    <AñadirCliente @clienteAgregado="clienteAgregado" :arrayClienteProp="arrayClienteProp"/>
+    <AñadirCliente @clienteAgregado="clienteAgregado" :arrayClienteProp="arrayClienteProp"
+      :editarClienteProp="editarClienteProp" :regFiscalIdProp="regFiscalIdProp" />
   </v-dialog>
   <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
     {{ msg }}
@@ -68,7 +71,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, inject } from "vue";
+import { ref, inject, onMounted } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
 import AñadirCliente from "./AñadirCliente.vue";
@@ -89,26 +92,44 @@ let dialogCliente: any = ref(false);
 let listClientesDialog: any = ref(false);
 let desserts: any = ref([]);
 let nombreRfc: any = ref() // MTV850101H72
+let editarClienteProp: any = ref();
+let regFiscalString: any = ref();
+let regFiscalIdProp: any = ref();
 
 const snack: any = ref(false);
 let snackColor = "";
 let msg: String = "";
 let timeMensaje: any = ref();
 let arrayClienteProp: any = ref();
+const itemsUsoCfdi: any = ref([]);
 
 emitter.on('editarAct', (item: any) => {
   clienteClass.nombre = item.datosReceptor.nombre;
   clienteClass.rfc = item.datosReceptor.rfc;
   clienteClass.domicilioFiscal = item.datosReceptor.domicilioFiscal;
   clienteClass.regimenFiscal = item.datosReceptor.regimenFiscal;
-  clienteClass.usoCfdi = item.datosReceptor.usoCfdi;
+});
+
+emitter.on('emitReset', () => {
+  clienteClass.nombre = null;
+  clienteClass.rfc = null;
+  clienteClass.domicilioFiscal = null;
+  clienteClass.regimenFiscal = null;
+  clienteClass.usoCfdi = null;
+});
+
+onMounted(() => {
+  if (clienteClass.regimenFiscal != undefined) {
+    getUsoCfdi(clienteClass.regimenFiscal);
+    getRegimenFiscal(clienteClass.regimenFiscal)
+  }
 });
 
 async function buscarPorNombreOrRfc() {
   await axios
-    .get(appStore.link + "/Clientes/byNombreOrRfc/" + nombreRfc.value.toUpperCase())
+    .get(appStore.link + "/Clientes/sinEmpresa/" + nombreRfc.value.toUpperCase())
     .then((response) => {
-      if(response.data.length > 1) {
+      if (response.data.length > 1) {
         listClientesDialog.value = true;
         desserts.value = response.data;
       } else {
@@ -137,14 +158,13 @@ async function setDatosCliente() {
 
 function objetoConcepto() {
   let reg = clienteClass.regimenFiscal.split(".");
-  let uso = clienteClass.usoCfdi.split(".");
-  // let unidad2 = codClaveUnidad[1].replace("- ", "");
+  let uso = clienteClass.usoCfdi;
   let obj = {
     nombre: clienteClass.nombre,
     rfc: clienteClass.rfc,
     domicilioFiscal: clienteClass.domicilioFiscal,
     regimenFiscal: reg[0],
-    usoCfdi: uso[0],
+    usoCfdi: uso,
   };
   return obj;
 }
@@ -155,6 +175,7 @@ function ocultar() {
 
 function agregarCliente() {
   dialogCliente.value = true;
+  editarClienteProp.value = null;
 }
 
 async function clienteAgregado(item: any) {
@@ -162,12 +183,13 @@ async function clienteAgregado(item: any) {
   mostrarSnack("success", "El cliente se agrego correctamente", 5000);
   nombreRfc.value = item;
   await buscarPorNombreOrRfc();
-  // Object.assign(clienteClass, item);
+  getUsoCfdi(clienteClass.regimenFiscal);
 }
 
-function emitClientes(item: any){
+function emitClientes(item: any) {
   Object.assign(clienteClass, item);
   listClientesDialog.value = false;
+  getUsoCfdi(clienteClass.regimenFiscal);
 }
 
 function mostrarSnack(color: any, msgSnack: any, time: any) {
@@ -177,11 +199,46 @@ function mostrarSnack(color: any, msgSnack: any, time: any) {
   snack.value = true;
 }
 
-function editarCliente(){
-  // console.log("Editar cliente");
+function listaClientes() {
+  listClientesDialog.value = true;
+}
+
+function editarCliente() {
   dialogCliente.value = true;
-  arrayCliente.value = objetoConcepto();
-  arrayClienteProp.value = arrayCliente.value;
+  editarClienteProp.value = clienteClass;
+}
+
+function getUsoCfdi(regFiscal: any) {
+  let aux = null;
+  if (regFiscal.includes(".-")) {
+    let reg = regFiscal.split(".-")
+    aux = reg[0];
+  } else {
+    aux = regFiscal;
+  }
+  axios
+    .get(appStore.link + "/UsoCFDI/get/" + aux)
+    .then((response) => {
+      itemsUsoCfdi.value = response.data;
+    })
+    .catch((e) => {
+      console.log("Fatal " + e);
+    });
+}
+
+function titleAutoComplete(item: any) {
+  return item.codigo + "-" + item.descripcion;
+}
+
+function getRegimenFiscal(regFiscal: any) {
+  axios.get(appStore.link + "/RegimenFiscal/byCodigo/" + regFiscal)
+    .then((response) => {
+      clienteClass.regimenFiscal = response.data[0].codigo + ".- " + response.data[0].descripcion;
+      regFiscalIdProp.value = response.data[0].id;
+    })
+    .catch((e) => {
+      console.log("Fatal " + e)
+    })
 }
 
 defineExpose({

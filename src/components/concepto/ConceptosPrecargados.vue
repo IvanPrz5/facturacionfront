@@ -9,7 +9,7 @@
             <v-text-field variant="outlined" density="compact" placeholder="Buscar" v-model="search" append-inner-icon="mdi-magnify"></v-text-field>
           </v-col>
           <v-col cols="12">
-            <v-data-table  v-model:page="page" :items-per-page="itemsPerPage" v-model:expanded="expanded" :headers="headers" :items="desserts" :search="search" show-expand>
+            <v-data-table v-model:page="page" :items-per-page="itemsPerPage" v-model:expanded="expanded" :headers="headers" :items="desserts" :search="search" show-expand>
               <template v-slot:expanded-row="{ columns, item }">
                 <tr>
                   <td :colspan="columns.length">

@@ -9,8 +9,13 @@ export default class Rules {
     return "Mínimo de " + digitosMin + " carácteres ";
   };
 
+  totalCaracteres = (value: any, digitosMin: number) => {
+    if (value?.length == digitosMin) return true;
+    return "Se requieren" + digitosMin + " carácteres ";
+  };
+
   numero = (value: string) => {
-    if (/^[0-9]+$/.test(value)) return true;
+    if (/^[0-9]*(\.[0-9]+)?$/.test(value)) return true;
     return "Solo números";
   };
 
@@ -32,6 +37,12 @@ export default class Rules {
 
   requerido = (value: any) => {
     if (value) return true;
+    return "Requerido";
+  };
+
+  requeridoDescuento = (value: any) => {
+    console.log(value.length)
+    if (value.length > 0) return true;
     return "Requerido";
   };
 
