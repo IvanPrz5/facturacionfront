@@ -11,11 +11,14 @@
                 <v-radio label="Impuesto Retenido" color="warning" :value="false"></v-radio>
               </div>
             </v-radio-group>
+            {{isTrasladado}}
+
           </v-col>
           <v-col cols="6" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Impuesto" :items="itemsImpuesto"
               :item-title="titleAutoComplete" item-value="codigo" v-model="impuestoClass.impuesto"
-              :rules="[rules.requerido]"></v-autocomplete>
+              :rules="[rules.requerido]" @update:model-value="cambiarBtn"></v-autocomplete>
+              {{impuestoClass.impuesto}}
           </v-col>
           <v-col cols="6" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Tipo Factor" :items="itemsTipoFactor"
@@ -154,6 +157,14 @@ onMounted(() => {
   getTipoFactor();
   // getTasaCuota();
 });
+
+function cambiarBtn(){
+  if(impuestoClass.impuesto == "001"){
+    isTrasladado.value = false;
+  }else{
+    isTrasladado.value = true;
+  }
+}
 
 function getColor(item: any) {
   if (item == false) return 'warning'
