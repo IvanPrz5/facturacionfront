@@ -4,21 +4,19 @@
     <v-card-text>
       <v-form ref="impuestoForm" fast-fail @submit.prevent>
         <v-row no-gutters>
-          <v-col cols="12">
+          <v-col cols="12" class="d-flex">
             <v-radio-group v-model="isTrasladado">
               <div class="d-flex">
                 <v-radio label="Impuesto Traslado" color="green" :value="true"></v-radio>
                 <v-radio label="Impuesto Retenido" color="warning" :value="false"></v-radio>
               </div>
             </v-radio-group>
-            {{isTrasladado}}
-
+            <!-- <v-switch v-model="estatal" :label="`${estatal} Impuesto Estatal`" false-value="Sin" true-value="Con" hide-details color="red"></v-switch> -->
           </v-col>
           <v-col cols="6" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Impuesto" :items="itemsImpuesto"
               :item-title="titleAutoComplete" item-value="codigo" v-model="impuestoClass.impuesto"
               :rules="[rules.requerido]" @update:model-value="cambiarBtn"></v-autocomplete>
-              {{impuestoClass.impuesto}}
           </v-col>
           <v-col cols="6" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Tipo Factor" :items="itemsTipoFactor"
@@ -119,6 +117,7 @@ let btnText: any = ref("Agregar");
 let isTrasladado: any = ref(true);
 let auxImp: any = ref();
 let textImp: any = ref();
+let estatal: any = ref("Sin");
 
 watch(impuestoClass, (nuevoValor) => {
   let aux = Number(nuevoValor.base) * Number(nuevoValor.tasaCuota);
@@ -155,7 +154,6 @@ onMounted(() => {
   }
   getImpuesto();
   getTipoFactor();
-  // getTasaCuota();
 });
 
 function cambiarBtn(){

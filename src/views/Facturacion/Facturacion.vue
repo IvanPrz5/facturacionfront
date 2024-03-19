@@ -185,6 +185,7 @@
       <v-col cols="12" class="d-flex" v-if="(arrayConceptos.length > 0 && !facturaTimbrada) || !editarProp">
         <!-- <v-spacer></v-spacer> -->
         <div style="display: flex; gap: 10px">
+          <v-btn v-if="arrayConceptos.length > 0 && props.propsEditarFactura == null" color="red" @click="cancelarTimbrado"> Cancelar </v-btn>
           <v-btn color="warning" @click="timbrarDespues">
             Timbrar Despues
           </v-btn>
@@ -673,5 +674,11 @@ async function guardarPrecargado(item: any) {
     .catch((e) => {
       console.log("Fatal" + e);
     });
+}
+
+function cancelarTimbrado(){
+  arrayConceptos.value = [];
+  facturaTimbrada.value = true;
+  editarProp.value = true;
 }
 </script>
