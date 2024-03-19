@@ -6,8 +6,17 @@
       </div>
     </v-col>
     <v-col v-for="i in empresas" :key="i" :cols="3">
-      <v-card class="mb-1" @click="selecEmpresa(i)">
-        <v-img cover height="250" src="https://cdn.vuetifyjs.com/images/cards/road.jpg"></v-img>
+      <v-card class="mb-1">
+        <v-img cover height="250" src="https://cdn.vuetifyjs.com/images/cards/road.jpg">
+          <v-toolbar color="rgba(0, 0, 0, 0)" theme="dark">
+          <template v-slot:append>
+            <v-btn icon @click="editarEmpresa(i)">
+              <v-icon>mdi-pencil</v-icon>
+              <v-tooltip activator="parent" location="bottom">Editar Empresa</v-tooltip>
+            </v-btn>
+          </template>
+        </v-toolbar>
+        </v-img>
         <v-card-item>
           <v-card-title>{{ i.nombre }}</v-card-title>
           <v-card-subtitle>
@@ -23,7 +32,7 @@
         </v-card-text>
         <v-divider class="mx-4 mt-2 mb-2"></v-divider>
         <v-card-actions>
-          <v-btn class="bg-deep-purple" variant="text" block>
+          <v-btn class="bg-deep-purple" variant="text" block @click="selecEmpresa(i)">
             Seleccionar
           </v-btn>
         </v-card-actions>
@@ -32,13 +41,11 @@
   </v-row>
   <div style="position: fixed; right: 40px; bottom: 40px;" v-if="roleAdmin == true || roleJefe == true">
     <v-btn elevation="2" size="large" color="indigo" style="margin-top: 20px;" @click="aggEmpresa">
-      <!-- <v-icon>mdi-plus</v-icon> -->
-      <!-- <v-tooltip activator="parent" location="end">Crear Empresa</v-tooltip> -->
       Crear Empresa
     </v-btn>
   </div>
   <v-dialog v-model="crearEmpresa" width="900" persistent>
-    <CrearEmpresa @actualizarEmpresas="actualizar()" @errorEmpresas="errorEmpresas()" @cerrar="cerrar"/>
+    <CrearEmpresa @actualizarEmpresas="actualizar()" @errorEmpresas="errorEmpresas()" @cerrar="cerrar" :editarEmpresaProp="editarEmpresaProp" />
   </v-dialog>
   <v-snackbar v-model="snack" :timeout="timeMensaje" :color="snackColor">
     {{ msg }}
@@ -68,6 +75,7 @@ let timeMensaje: any = ref();
 let roleAdmin: any = ref(false);
 let roleJefe: any = ref(false);
 let roleAux: any = ref(false);
+let editarEmpresaProp: any = ref(false);
 
 onMounted(() => {
   getEmpresas();
@@ -106,6 +114,12 @@ function errorEmpresas(){
 
 function aggEmpresa(){
   crearEmpresa.value = true;
+  editarEmpresaProp.value = null;
+}
+
+function editarEmpresa(item: any){
+  crearEmpresa.value = true;
+  editarEmpresaProp.value = item;
 }
 
 function mostrarSnack(color: any, msgSnack: any, time: any) {

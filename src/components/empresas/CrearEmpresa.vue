@@ -39,7 +39,7 @@
             <v-btn variant="tonal" block color="error" @click="cerrar">Cancelar</v-btn>
           </v-col>
           <v-col cols="8 mb-4" class="px-1">
-            <v-btn variant="tonal" block color="success" @click="crearEmpresa">Crear Empresa</v-btn>
+            <v-btn variant="tonal" block color="success" @click="crearEmpresa">{{ btnText }}</v-btn>
           </v-col>
         </v-row>
       </v-form>
@@ -54,6 +54,7 @@ import Rules from "@/class/Rules";
 import axios from 'axios';
 
 const emit = defineEmits(["actualizarEmpresas", "errorEmpresas", "cerrar"]);
+const props = defineProps(["editarEmpresaProp"]);
 
 const appStore = storeApp();
 const rules = new Rules();
@@ -79,8 +80,15 @@ let empresa: any = ref({
   status: true,
   idRegimenFiscal: { id: null },
 });
+let btnText: any = ref("")
 
 onMounted(() => {
+  if(props.editarEmpresaProp != null){
+    btnText.value = "Editar Empresa";
+    cargarDatos(props.editarEmpresaProp);
+  }else{
+    btnText.value = "Crear Empresa";
+  }
   getRegimenFiscal();
 });
 
@@ -98,6 +106,12 @@ function getRegimenFiscal() {
 async function crearEmpresa() {
   const { valid } = await empresaForm.value.validate();
   if(valid){
+    
+    let tipoAxios = "/Empresas/add/" + appStore.usuario.id
+    if(props.editarEmpresaProp != null){
+      tipoAxios = "/Empresas/editar/" + props.editarEmpresaProp.id;
+    }
+    
     empresa.value.idRegimenFiscal.id = empresa.value.regimenFiscal;
     const entityJson = JSON.stringify(empresa.value);
     const blob = new Blob([entityJson], {
@@ -117,8 +131,9 @@ async function crearEmpresa() {
     }
 
     formData.append("doc", blob);
+    
     axios
-      .post(appStore.link + "/Empresas/add/" + appStore.usuario.id, formData, {
+      .post(appStore.link + tipoAxios, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
@@ -131,6 +146,15 @@ async function crearEmpresa() {
   }else{
     console.log("Campos Vacios")
   }
+}
+
+function cargarDatos(item: any){
+  empresa.value.nombre = item.nombre;
+  empresa.value.rfc = item.rfc;
+  empresa.value.codPostal = item.codPostal;
+  empresa.value.regimenFiscal = item.regimenFiscal;
+  console.log(props.editarEmpresaProp)
+
 }
 
 function titleAutoComplete(item: any) {

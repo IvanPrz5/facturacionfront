@@ -391,7 +391,7 @@ let resultados2 = computed(() => {
   for (let i = 0; i < arrayConceptos.value.length; i++) {
     for (let j = 0; j < arrayConceptos.value[i].datosImpuesto.length; j++) {
       if (arrayConceptos.value[i].datosImpuesto[j].isTrasladado == true) {
-        aux += arrayConceptos.value[i].datosImpuesto[j].importe;
+        aux += Number(arrayConceptos.value[i].datosImpuesto[j].importe);
       }
     }
   }
@@ -405,7 +405,7 @@ let resultados3 = computed(() => {
   for (let i = 0; i < arrayConceptos.value.length; i++) {
     for (let j = 0; j < arrayConceptos.value[i].datosImpuesto.length; j++) {
       if (arrayConceptos.value[i].datosImpuesto[j].isTrasladado == false) {
-        aux += arrayConceptos.value[i].datosImpuesto[j].importe;
+        aux += Number(arrayConceptos.value[i].datosImpuesto[j].importe);
       }
     }
   }
