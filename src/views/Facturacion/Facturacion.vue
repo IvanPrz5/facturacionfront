@@ -708,27 +708,10 @@ async function vistaPrevia(){
         link.click();
       })
       .catch((e: any) => {
-        console.log("Buscar folio  " + e);
+        console.log("Error al generar vista Previa  " + e);
       });
-  }
+    } else {
+      console.log("No dejar campos vacios");
+    }
 }
-
-
-async function descargarPdf(item: any) {
-  await axios.post(appStore.link + "/Xml/descargarPdf/" + item.datosComprobante.uuid + "/" + appStore.empresa.id, item, {
-    responseType: "blob"
-  })
-    .then((response: any) => {
-      let url = window.URL.createObjectURL(new Blob([response.data]));
-      let link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", item.datosComprobante.uuid + ".pdf");
-      document.body.appendChild(link);
-      link.click();
-    })
-    .catch((e: any) => {
-      console.log("Buscar folio  " + e);
-    });
-}
-
 </script>
