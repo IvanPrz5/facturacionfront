@@ -694,7 +694,7 @@ async function vistaPrevia(){
       datosFactura.value.datosComprobante.isTimbrado = false;
     }
     datosFactura.value.idEmpresa = appStore.empresa.id;
-    // loader.value = true;
+    loader.value = true;
     await axios
       .post(appStore.link + ruta, datosFactura.value, {
         responseType: "blob"
@@ -706,6 +706,7 @@ async function vistaPrevia(){
         link.setAttribute("download", "VistaPrevia" + ".pdf");
         document.body.appendChild(link);
         link.click();
+        loader.value = false;
       })
       .catch((e: any) => {
         console.log("Error al generar vista Previa  " + e);
