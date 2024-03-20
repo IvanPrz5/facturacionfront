@@ -186,6 +186,7 @@
         <!-- <v-spacer></v-spacer> -->
         <div style="display: flex; gap: 10px">
           <v-btn v-if="arrayConceptos.length > 0 && props.propsEditarFactura == null" color="red" @click="cancelarTimbrado"> Cancelar </v-btn>
+          <v-btn color="info" @click="vistaPrevia"> Generar Vista Previa </v-btn>
           <v-btn color="warning" @click="timbrarDespues">
             Timbrar Despues
           </v-btn>
@@ -681,4 +682,53 @@ function cancelarTimbrado(){
   facturaTimbrada.value = true;
   editarProp.value = true;
 }
+
+async function vistaPrevia(){
+  let datosComprobante = await getDatosComprobante();
+  let datosCliente = await getDatosCliente();
+  if (datosCliente != null && datosComprobante != null) {
+    let ruta = "/Facturacion/vistaPrevia/" + appStore.empresa.id;
+
+    datosFactura.value.datosConcepto = arrayConceptos.value;
+    if (despues.value == -1) {
+      datosFactura.value.datosComprobante.isTimbrado = false;
+    }
+    datosFactura.value.idEmpresa = appStore.empresa.id;
+    // loader.value = true;
+    await axios
+      .post(appStore.link + ruta, datosFactura.value, {
+        responseType: "blob"
+      })
+      .then((response: any) => {
+        let url = window.URL.createObjectURL(new Blob([response.data]));
+        let link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "VistaPrevia" + ".pdf");
+        document.body.appendChild(link);
+        link.click();
+      })
+      .catch((e: any) => {
+        console.log("Buscar folio  " + e);
+      });
+  }
+}
+
+
+async function descargarPdf(item: any) {
+  await axios.post(appStore.link + "/Xml/descargarPdf/" + item.datosComprobante.uuid + "/" + appStore.empresa.id, item, {
+    responseType: "blob"
+  })
+    .then((response: any) => {
+      let url = window.URL.createObjectURL(new Blob([response.data]));
+      let link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", item.datosComprobante.uuid + ".pdf");
+      document.body.appendChild(link);
+      link.click();
+    })
+    .catch((e: any) => {
+      console.log("Buscar folio  " + e);
+    });
+}
+
 </script>
