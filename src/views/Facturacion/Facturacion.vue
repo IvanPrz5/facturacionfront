@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row>
+    <v-row class="mx-5">
       <v-col cols="12">
         <Cliente ref="cliente" @getDatosCliente="getDatosCliente"></Cliente>
       </v-col>
@@ -11,7 +11,7 @@
         <!-- </div> -->
       </v-col>
       <v-col v-if="arrayConceptos.length > 0" cols="12">
-        <v-card elevation="10" max-height="600" class="overflow-auto">
+        <v-card elevation="5" max-height="600" class="overflow-auto">
           <v-card-title class="d-flex">
             Conceptos Agregados
             <v-card-subtitle color="red" v-if="facturaTimbrada" class="mt-2">
@@ -22,6 +22,9 @@
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-btn color="indigo" @click="crearConcepto" v-if="!facturaTimbrada || !editarProp"
               append-icon="mdi-plus">Agregar Concepto</v-btn>
+            <v-divider class="mx-4" inset vertical></v-divider>
+            <v-btn color="indigo" @click="showImpuestoLocales" v-if="!facturaTimbrada || !editarProp"
+              append-icon="mdi-plus">Impuesto Local</v-btn>
           </v-card-title>
           <v-card-text>
             <v-list>
@@ -182,35 +185,90 @@
       <v-col cols="6" v-if="facturaTimbrada && editarProp">
         <v-btn color="indigo" @click="crearConcepto"> Agregar Concepto </v-btn>
       </v-col>
-      <v-col cols="12" class="d-flex" v-if="(arrayConceptos.length > 0 && !facturaTimbrada) || !editarProp">
-        <!-- <v-spacer></v-spacer> -->
-        <div style="display: flex; gap: 10px">
-          <v-btn v-if="arrayConceptos.length > 0 && props.propsEditarFactura == null" color="red" @click="cancelarTimbrado"> Cancelar </v-btn>
-          <v-btn color="info" @click="vistaPrevia"> Generar Vista Previa </v-btn>
-          <v-btn color="warning" @click="timbrarDespues">
-            Timbrar Despues
-          </v-btn>
-          <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
-        </div>
-        <v-spacer></v-spacer>
-        <v-card class="elevation-5 mr-10 d-flex">
+    </v-row>
+    <v-row v-if="(arrayConceptos.length > 0 && !facturaTimbrada) || !editarProp" class="mx-5">
+      <v-col cols="8">
+        <v-card elevation="10" max-height="300" class="overflow-auto">
+          <v-card-title>Impuestos Locales</v-card-title>
+          <v-card-text>
+            <v-list>
+              <div v-for="(item, i) in arrayAux" class="d-flex">
+                <v-list-item>{{ i + 1 }}</v-list-item>
+                <v-list-item>Impuesto : {{ item.impuesto }}</v-list-item>
+                <v-list-item>Porcentaje : {{ item.tasaCuota }}</v-list-item>
+                <v-list-item>Monto : {{ item.importe }}</v-list-item>
+                <v-list-item>
+                  <v-chip :color="getColor(item.isTrasladado)">
+                    {{ textChip = item.isTrasladado ? 'Trasladado' : 'Retenido' }}
+                  </v-chip>
+                </v-list-item>
+              </div>
+            </v-list>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col cols="4">
+        <v-card class="elevation-5 d-flex">
           <v-card-text>
             <h3 class="text-info">SubTotal :</h3>
+          </v-card-text>
+          <v-card-text style="display: flex; flex-direction: column; align-items: end">
+            <h3 class="text-info">{{ resultados.subTotal }}</h3>
+          </v-card-text>
+        </v-card>
+        <v-card class="elevation-5 d-flex mt-2">
+          <v-card-text>
             <h3>Trasladados :</h3>
             <h3>Retenidos :</h3>
+            <!-- <h3 style="color: green">Total :</h3> -->
+          </v-card-text>
+          <v-card-text style="display: flex; flex-direction: column; align-items: end">
+            <h3>{{ resultados2 }}</h3>
+            <h3>{{ resultados3 }}</h3>
+          </v-card-text>
+        </v-card>
+        <v-card class="elevation-5 d-flex mt-2">
+          <v-card-text>
+            <h3>Locales Trasladados :</h3>
+            <h3>Locales Retenidos :</h3>
+          </v-card-text>
+          <v-card-text style="display: flex; flex-direction: column; align-items: end">
+            <h3>{{ resultados4 }}</h3>
+            <h3>{{ resultados5 }}</h3>
+          </v-card-text>
+        </v-card>
+        <v-card class="elevation-5 d-flex mt-2">
+          <v-card-text>
             <h3 style="color: red">Descuento :</h3>
             <h3 style="color: green">Total :</h3>
           </v-card-text>
-          <v-card-text style="display: flex; flex-direction: column; align-items: end;">
-            <h3 class="text-info">{{ resultados.subTotal }}</h3>
-            <h3>{{ resultados2 }}</h3>
-            <h3>{{ resultados3 }}</h3>
+          <v-card-text style="display: flex; flex-direction: column; align-items: end">
             <h3 style="color: red">{{ resultados.descuento }}</h3>
             <h3 style="color: green">{{ resultados.total }}</h3>
           </v-card-text>
         </v-card>
       </v-col>
+      <v-col cols="12" class="d-flex">
+        <!-- <v-spacer></v-spacer> -->
+        <div style="display: flex; gap: 10px">
+          <v-btn v-if="arrayConceptos.length > 0 && props.propsEditarFactura == null" color="red"
+            @click="cancelarTimbrado">
+            Limpiar
+          </v-btn>
+          <v-btn color="info" @click="vistaPrevia">
+            Generar Vista Previa
+          </v-btn>
+          <v-btn color="warning" @click="timbrarDespues">
+            Timbrar Despues
+          </v-btn>
+          <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
+        </div>
+        <!-- <v-spacer></v-spacer> -->
+      </v-col>
     </v-row>
+    <v-dialog v-model="showImpLocales" width="900">
+      <ImpuestoLocal :propSubTotal="propSubTotal" @setImpLocales="getImpLocales"></ImpuestoLocal>
+    </v-dialog>
     <v-dialog v-model="showConcepto" width="900">
       <Concepto ref="concepto" :propConcepto="propConcepto" @setDatosConcepto="getDatosConceptos"
         @actualizar="actualizar" @closeConcepto="cerrarConcepto" />
@@ -243,6 +301,7 @@ import Cliente from "@/components/cliente/Cliente.vue";
 import Comprobante from "@/components/comprobante/Comprobante.vue";
 import Concepto from "@/components/concepto/Concepto.vue";
 import Impuesto from "@/components/impuesto/Impuesto.vue";
+import ImpuestoLocal from "@/components/impuesto/ImpuestoLocal.vue";
 
 const cliente = ref<InstanceType<typeof Cliente> | null>(null);
 const comprobante = ref<InstanceType<typeof Comprobante> | null>(null);
@@ -256,10 +315,11 @@ const appStore = storeApp();
 
 let datosFactura: any = ref({});
 
-let showComprobante: any = ref(true);
+let textChip: any = ref();
 let showConcepto: any = ref(false);
 
 let dialogImpuesto: any = ref(false);
+let showImpLocales: any = ref(false);
 let loader: any = ref(false);
 let editarProp: any = ref(true);
 let facturaTimbrada: any = ref(true);
@@ -284,6 +344,8 @@ let timeMensaje: any = ref();
 
 let editarFacturaProp: any = ref();
 let editarComprobanteProp: any = ref();
+let propSubTotal: any = ref();
+let arrayAux: any = ref([]);
 
 onMounted(() => {
   if (props.propsEditarFactura != undefined) {
@@ -292,6 +354,50 @@ onMounted(() => {
     arrayConceptos.value = props.propsEditarFactura.datosConcepto;
     editarProp.value = false;
   }
+});
+
+let resultados = computed(() => {
+  let aux = 0;
+  let aux2 = 0;
+  let aux3 = 0;
+  let aux4 = 0;
+  let aux5 = 0;
+  let aux6 = 0;
+  let aux7 = 0;
+  for (let i = 0; i < arrayConceptos.value.length; i++) {
+    aux += Number(arrayConceptos.value[i].importe);
+    aux2 += Number(arrayConceptos.value[i].descuento);
+    aux3 += Number(arrayConceptos.value[i].totalImp);
+  }
+
+  if (arrayAux.value.length > 0) {
+    for (let i = 0; i < arrayAux.value.length; i++) {
+      if (arrayAux.value[i].isTrasladado == true) {
+        aux5 += Number(arrayAux.value[i].importe);
+      } else {
+        aux6 += Number(arrayAux.value[i].importe);
+      }
+    }
+    arrayConceptos.value.totalImpLocales =
+      Number(aux5) + -Number(aux6);
+      console.log(arrayConceptos.value.totalImpLocales);
+  }
+  let obj = {
+    subTotal: "",
+    descuento: "",
+    total: "",
+  };
+  obj.subTotal = Number(aux).toFixed(2);
+  obj.descuento = Number(aux2).toFixed(2);
+  aux4 = Number(obj.subTotal) - Number(obj.descuento) + aux3;
+
+  obj.total = Number(aux4).toFixed(2);
+
+  if (arrayConceptos.value.totalImpLocales != null) {
+    let algo = Number(aux4) + Number(arrayConceptos.value.totalImpLocales);
+    obj.total = Number(algo).toFixed(2);
+  }
+  return obj;
 });
 
 let resultados2 = computed(() => {
@@ -321,29 +427,28 @@ let resultados3 = computed(() => {
   return total;
 });
 
-let resultados = computed(() => {
+let resultados4 = computed(() => {
   let aux = 0;
-  let aux2 = 0;
-  let aux3 = 0;
-  let aux4 = 0;
-  for (let i = 0; i < arrayConceptos.value.length; i++) {
-    aux += Number(arrayConceptos.value[i].importe);
-    aux2 += Number(arrayConceptos.value[i].descuento);
-    aux3 += Number(arrayConceptos.value[i].totalImp);
+  for (let i = 0; i < arrayAux.value.length; i++) {
+    if (arrayAux.value[i].isTrasladado == true) {
+      aux += Number(arrayAux.value[i].importe);
+    }
   }
+  let total = Number(aux).toFixed(2);
+  return total;
+  // arrayConceptos.value.totalLocaleTras = aux.toFixed(2);
+});
 
-  let obj = {
-    subTotal: "",
-    descuento: "",
-    total: "",
-  };
-
-  obj.subTotal = Number(aux).toFixed(2);
-  obj.descuento = Number(aux2).toFixed(2);
-  aux4 = Number(obj.subTotal) - Number(obj.descuento) + aux3;
-  obj.total = Number(aux4).toFixed(2);
-
-  return obj;
+let resultados5 = computed(() => {
+  let aux = 0;
+  for (let i = 0; i < arrayAux.value.length; i++) {
+    if (arrayAux.value[i].isTrasladado == false) {
+      aux += Number(arrayAux.value[i].importe);
+    }
+  }
+  let total = Number(aux).toFixed(2);
+  return total;
+  // arrayConceptos.value.totalLocaleRete = aux.toFixed(2);
 });
 
 async function generarFactura() {
@@ -357,6 +462,12 @@ async function generarFactura() {
       datosFactura.value.datosComprobante.isTimbrado = false;
     }
     datosFactura.value.idEmpresa = appStore.empresa.id;
+    if (arrayAux.value.length > 0) {
+      datosFactura.value.datosLocales = arrayAux.value;
+    }else{
+      datosFactura.value.datosLocales = [];
+    }
+    console.log(datosFactura.value);
     loader.value = true;
 
     await axios
@@ -555,7 +666,7 @@ function getTotalConcepTras(item: any) {
       aux += Number(arrayConceptos.value[index].datosImpuesto[j].importe);
     }
   }
-  return arrayConceptos.value[index].totalTras = Number(aux).toFixed(2);
+  return (arrayConceptos.value[index].totalTras = Number(aux).toFixed(2));
 }
 
 function getTotalConcepRete(item: any) {
@@ -566,7 +677,7 @@ function getTotalConcepRete(item: any) {
       aux += Number(arrayConceptos.value[index].datosImpuesto[j].importe);
     }
   }
-  return arrayConceptos.value[index].totalRete = Number(aux).toFixed(2);
+  return (arrayConceptos.value[index].totalRete = Number(aux).toFixed(2));
 }
 
 function getTotalConcepImp(item: any) {
@@ -625,13 +736,6 @@ function codObjImpuesto(codImpuesto: any) {
 }
 
 async function descargarArchivos(uuid: any, datosFactura: any) {
-  /*   await axios({
-    url:
-      appStore.link +
-      "/Xml/descargarArchivos/" + uuid + "/" + appStore.empresa.id,
-    method: "GET",
-    responseType: "blob",
-  }) */
   await axios
     .post(
       appStore.link +
@@ -663,12 +767,8 @@ async function guardarPrecargado(item: any) {
     .post(appStore.link + ruta, item)
     .then((response) => {
       if (response.data == 0) {
-        // loader.value = false;
         mostrarSnack("success", "Se guardo como precargado", 4500);
-        // emit("cerrarVentanaFacturacion");
-        // descargarArchivos(response.data.mensaje)
       } else {
-        // loader.value = false;
         mostrarSnack("error", "Error", 5000);
       }
     })
@@ -677,13 +777,13 @@ async function guardarPrecargado(item: any) {
     });
 }
 
-function cancelarTimbrado(){
+function cancelarTimbrado() {
   arrayConceptos.value = [];
   facturaTimbrada.value = true;
   editarProp.value = true;
 }
 
-async function vistaPrevia(){
+async function vistaPrevia() {
   let datosComprobante = await getDatosComprobante();
   let datosCliente = await getDatosCliente();
   if (datosCliente != null && datosComprobante != null) {
@@ -693,11 +793,16 @@ async function vistaPrevia(){
     if (despues.value == -1) {
       datosFactura.value.datosComprobante.isTimbrado = false;
     }
+    if (arrayAux.value.length > 0) {
+      datosFactura.value.datosLocales = arrayAux.value;
+    }else{
+      datosFactura.value.datosLocales = [];
+    }
     datosFactura.value.idEmpresa = appStore.empresa.id;
     loader.value = true;
     await axios
       .post(appStore.link + ruta, datosFactura.value, {
-        responseType: "blob"
+        responseType: "blob",
       })
       .then((response: any) => {
         let url = window.URL.createObjectURL(new Blob([response.data]));
@@ -711,8 +816,32 @@ async function vistaPrevia(){
       .catch((e: any) => {
         console.log("Error al generar vista Previa  " + e);
       });
-    } else {
-      console.log("No dejar campos vacios");
-    }
+  } else {
+    console.log("No dejar campos vacios");
+  }
+}
+
+function showImpuestoLocales() {
+  showImpLocales.value = true;
+  propSubTotal.value = resultados.value.subTotal;
+}
+
+function getImpLocales(item: any) {
+  showImpLocales.value = false;
+  arrayAux.value.push(item);
+  // arrayConceptos.value.datosImpLocales = arrayAux.value;
+  // if(item.isTrasladado){
+  // let aux = Number(resultados.value.subTotal) + Number(item.importe);
+  // resultados.value.total = aux.toFixed(2);
+  // arrayConceptos.value.impuestoLocal.push(item)
+  // }else{
+  // let aux = Number(resultados.value.subTotal) - Number(item.importe);
+  // resultados.value.total = aux.toFixed(2);
+  // }
+}
+
+function getColor(item: any) {
+  if (item == false) return 'warning'
+  else return 'green'
 }
 </script>

@@ -4,9 +4,6 @@
       Cliente
       <v-card-subtitle class="mt-2"> {{ clienteClass.nombre }} </v-card-subtitle>
       <v-spacer></v-spacer>
-      <!-- <v-text-field class="pa-0 ma-0" density="compact" variant="filled" label="Buscar por Nombre o Rfc del cliente"
-        hide-details append-inner-icon="mdi-magnify" v-model="nombreRfc" @click:append-inner="buscarPorNombreOrRfc"
-        @keyup.enter="buscarPorNombreOrRfc"></v-text-field> -->
       <v-divider class="mx-4" inset vertical></v-divider>
       <v-btn @click="listaClientes" color="indigo">
         Ver Clientes
@@ -24,9 +21,6 @@
       <div class="mx-4 mt-4" v-show="showCliente">
         <v-form ref="clienteForm" fast-fail @submit.prevent>
           <v-row no-gutters>
-            <!-- <v-col cols="12">
-              <v-text-field variant="outlined" density="compact" label="RFC o Nombre del Cliente" append-inner-icon="mdi-magnify"></v-text-field>
-            </v-col> -->
             <v-col cols="8" class="pa-1">
               <v-text-field variant="outlined" density="compact" label="Nombre" v-model="clienteClass.nombre"
                 :rules="[rules.requerido]" readonly></v-text-field>

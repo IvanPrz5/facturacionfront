@@ -123,10 +123,6 @@ let arrayImpuestos: any = ref([]);
 let btnText: any = ref("Añadir concepto a la factura");
 let propBusquedaAvanzada: any = ref(false);
 
-let nameRules = [
-  (v: any) => !!v || 'Requerido',
-];
-
 const props = defineProps(["propConcepto"]);
 const emit = defineEmits(["setDatosConcepto", "actualizar", "closeConcepto"]);
 

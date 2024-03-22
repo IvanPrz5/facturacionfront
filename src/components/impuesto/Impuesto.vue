@@ -11,8 +11,9 @@
                 <v-radio label="Impuesto Retenido" color="warning" :value="false"></v-radio>
               </div>
             </v-radio-group>
-            <!-- <v-switch v-model="estatal" :label="`${estatal} Impuesto Estatal`" false-value="Sin" true-value="Con" hide-details color="red"></v-switch> -->
           </v-col>
+        </v-row>
+        <v-row no-gutters>
           <v-col cols="6" class="pa-1">
             <v-autocomplete variant="outlined" density="compact" label="Impuesto" :items="itemsImpuesto"
               :item-title="titleAutoComplete" item-value="codigo" v-model="impuestoClass.impuesto"
@@ -29,22 +30,17 @@
               :rules="[rules.requerido]"></v-autocomplete>
           </v-col>
           <v-col cols="4" class="pa-1">
-            <v-text-field ariant="outlined" density="compact" label="Base" v-model="impuestoClass.base"
-              :rules="[rules.requerido]"></v-text-field>
+            <v-text-field variant="outlined" density="compact" label="Base" v-model="impuestoClass.base"
+              :rules="[rules.requerido, rules.numero]"></v-text-field>
           </v-col>
           <v-col cols="4" class="pa-1" v-if="impuestoClass.importe != 'NaN'">
-            <v-text-field ariant="outlined" density="compact" label="Importe" v-model="impuestoClass.importe"
+            <v-text-field variant="outlined" density="compact" label="Importe" v-model="impuestoClass.importe"
               :rules="[rules.requerido]"></v-text-field>
           </v-col>
         </v-row>
       </v-form>
       <v-row no-gutters>
         <div style="display: none;">{{ array }}</div>
-        <!-- <v-col>
-          <v-btn block color="success" @click="guardarPrecargado">
-            Guardar
-          </v-btn>
-        </v-col> -->
         <v-col v-if="desserts.length > 0" class="px-1" cols="6">
           <v-btn block color="error" @click="cerrarImpuesto()">
             Terminar
@@ -69,7 +65,7 @@
       {{ codImpuesto(value) }}
     </template>
     <template v-slot:item.isTrasladado="{ value }">
-      <v-chip :color="getColor(value)">
+      <v-chip :color="getColor(value)"> 
         {{ textImp = value ? 'T' : 'R' }}
       </v-chip>
     </template>
@@ -117,7 +113,6 @@ let btnText: any = ref("Agregar");
 let isTrasladado: any = ref(true);
 let auxImp: any = ref();
 let textImp: any = ref();
-let estatal: any = ref("Sin");
 
 watch(impuestoClass, (nuevoValor) => {
   let aux = Number(nuevoValor.base) * Number(nuevoValor.tasaCuota);
@@ -257,7 +252,7 @@ function objetoImpuesto() {
     tasaCuota: impuestoClass.tasaCuota,
     base: impuestoClass.base,
     importe: impuestoClass.importe,
-    isTrasladado: isTrasladado.value,
+    isTrasladado: isTrasladado.value
   };
 
   return obj;
@@ -290,4 +285,10 @@ function codImpuesto(codImpuesto: any) {
 defineExpose({
   cargarDatos,
 });
+
+/* 
+higt threason
+reign of terror
+8th commandt
+ */
 </script>
