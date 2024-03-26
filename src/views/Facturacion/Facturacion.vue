@@ -182,13 +182,10 @@
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="6" v-if="facturaTimbrada && editarProp">
-        <v-btn color="indigo" @click="crearConcepto"> Agregar Concepto </v-btn>
-      </v-col>
     </v-row>
-    <v-row v-if="(arrayConceptos.length > 0 && !facturaTimbrada) || !editarProp" class="mx-5">
+    <v-row class="mx-5">
       <v-col cols="8">
-        <v-card elevation="10" max-height="300" class="overflow-auto">
+        <v-card v-if="arrayAux.length > 0" elevation="10" max-height="300" class="overflow-auto">
           <v-card-title>Impuestos Locales</v-card-title>
           <v-card-text>
             <v-list>
@@ -199,15 +196,27 @@
                 <v-list-item>Monto : {{ item.importe }}</v-list-item>
                 <v-list-item>
                   <v-chip :color="getColor(item.isTrasladado)">
-                    {{ textChip = item.isTrasladado ? 'Trasladado' : 'Retenido' }}
+                    {{
+          (textChip = item.isTrasladado ? "Trasladado" : "Retenido")
+        }}
                   </v-chip>
+                </v-list-item>
+                <v-list-item v-if="!facturaTimbrada || !editarProp">
+                  <v-btn variant="text" icon color="indigo-lighten-2" @click="editarLocal(item)">
+                    <v-icon>mdi-pencil-box-outline</v-icon>
+                    <v-tooltip activator="parent" location="end">Editar Impuesto</v-tooltip>
+                  </v-btn>
+                  <v-btn variant="text" icon color="purple-lighten-2" @click="quitarLocal(item)">
+                    <v-icon>mdi-delete-circle-outline</v-icon>
+                    <v-tooltip activator="parent" location="end">Eliminar Impuesto</v-tooltip>
+                  </v-btn>
                 </v-list-item>
               </div>
             </v-list>
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="4">
+      <v-col cols="4" v-if="(arrayConceptos.length > 0 && !facturaTimbrada) || !editarProp">
         <v-card class="elevation-5 d-flex">
           <v-card-text>
             <h3 class="text-info">SubTotal :</h3>
@@ -248,7 +257,7 @@
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" class="d-flex">
+      <v-col cols="12" class="d-flex" v-if="(arrayConceptos.length > 0 && !facturaTimbrada) || !editarProp">
         <!-- <v-spacer></v-spacer> -->
         <div style="display: flex; gap: 10px">
           <v-btn v-if="arrayConceptos.length > 0 && props.propsEditarFactura == null" color="red"
@@ -263,11 +272,14 @@
           </v-btn>
           <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
         </div>
-        <!-- <v-spacer></v-spacer> -->
+      </v-col>
+      <v-col cols="6" v-if="facturaTimbrada && editarProp">
+        <v-btn color="indigo" @click="crearConcepto"> Agregar Concepto </v-btn>
       </v-col>
     </v-row>
     <v-dialog v-model="showImpLocales" width="900">
-      <ImpuestoLocal :propSubTotal="propSubTotal" @setImpLocales="getImpLocales"></ImpuestoLocal>
+      <ImpuestoLocal :propSubTotal="propSubTotal" @setImpLocales="getImpLocales" :editImpLocal="editImpLocal" @actualizarLocal="actualizarLocal">
+      </ImpuestoLocal>
     </v-dialog>
     <v-dialog v-model="showConcepto" width="900">
       <Concepto ref="concepto" :propConcepto="propConcepto" @setDatosConcepto="getDatosConceptos"
@@ -333,6 +345,7 @@ let propTabla: any = ref();
 let uuidTimbrado: any = ref(null);
 
 let conceptoIndex: any = ref(-1);
+let conceptoIndexAux: any = ref(-1);
 let precargadoIndex: any = ref(-1);
 let impuestoIndex: any = ref(-1);
 let despues: any = ref();
@@ -347,11 +360,15 @@ let editarComprobanteProp: any = ref();
 let propSubTotal: any = ref();
 let arrayAux: any = ref([]);
 
+let editImpLocal: any = ref();
+let indexLocal: any = ref(-1);
+
 onMounted(() => {
   if (props.propsEditarFactura != undefined) {
     editarComprobanteProp.value = props.propsEditarFactura.datosComprobante;
     editarFacturaProp.value = props.propsEditarFactura.datosCliente;
     arrayConceptos.value = props.propsEditarFactura.datosConcepto;
+    arrayAux.value = props.propsEditarFactura.datosLocales;
     editarProp.value = false;
   }
 });
@@ -363,14 +380,13 @@ let resultados = computed(() => {
   let aux4 = 0;
   let aux5 = 0;
   let aux6 = 0;
-  let aux7 = 0;
   for (let i = 0; i < arrayConceptos.value.length; i++) {
     aux += Number(arrayConceptos.value[i].importe);
     aux2 += Number(arrayConceptos.value[i].descuento);
     aux3 += Number(arrayConceptos.value[i].totalImp);
   }
 
-  if (arrayAux.value.length > 0) {
+  if (arrayAux.value != null) {
     for (let i = 0; i < arrayAux.value.length; i++) {
       if (arrayAux.value[i].isTrasladado == true) {
         aux5 += Number(arrayAux.value[i].importe);
@@ -378,9 +394,7 @@ let resultados = computed(() => {
         aux6 += Number(arrayAux.value[i].importe);
       }
     }
-    arrayConceptos.value.totalImpLocales =
-      Number(aux5) + -Number(aux6);
-      console.log(arrayConceptos.value.totalImpLocales);
+    arrayConceptos.value.totalImpLocales = Number(aux5) + -Number(aux6);
   }
   let obj = {
     subTotal: "",
@@ -464,10 +478,9 @@ async function generarFactura() {
     datosFactura.value.idEmpresa = appStore.empresa.id;
     if (arrayAux.value.length > 0) {
       datosFactura.value.datosLocales = arrayAux.value;
-    }else{
+    } else {
       datosFactura.value.datosLocales = [];
     }
-    console.log(datosFactura.value);
     loader.value = true;
 
     await axios
@@ -531,6 +544,7 @@ async function getDatosComprobante() {
 function crearConcepto() {
   if (uuidTimbrado.value != null) {
     arrayConceptos.value = [];
+    arrayAux.value = [];
     uuidTimbrado.value = false;
   }
   showConcepto.value = true;
@@ -547,6 +561,8 @@ function getDatosConceptos(item: any) {
     facturaTimbrada.value = false;
     if (item.idObjetoImp != "01") {
       crearImpuesto(item);
+    }else{
+      item.datosImpuesto = [];
     }
   }
 }
@@ -555,6 +571,7 @@ function editarConcepto(item: any) {
   showConcepto.value = true;
   propConcepto.value = item;
   conceptoIndex.value = arrayConceptos.value.indexOf(item);
+  conceptoIndexAux.value = arrayConceptos.value.indexOf(item)
 }
 
 function actualizar(item: any) {
@@ -597,7 +614,7 @@ function crearImpuesto(item: any) {
 }
 
 function getDatosImpuestos(item: any) {
-  if (item != null && conceptoIndex.value != -1) {
+  if (item != null) {
     let numTrasladados = 0;
     let numRetenciones = 0;
     for (let i = 0; i < item.length; i++) {
@@ -607,9 +624,16 @@ function getDatosImpuestos(item: any) {
         numRetenciones++;
       }
     }
-    arrayConceptos.value[conceptoIndex.value].datosImpuesto = item;
-    arrayConceptos.value[conceptoIndex.value].numTrasladados = numTrasladados;
-    arrayConceptos.value[conceptoIndex.value].numRetenciones = numRetenciones;
+    if(conceptoIndex.value != -1){
+      arrayConceptos.value[conceptoIndex.value].datosImpuesto = item;
+      arrayConceptos.value[conceptoIndex.value].numTrasladados = numTrasladados;
+      arrayConceptos.value[conceptoIndex.value].numRetenciones = numRetenciones;
+    }
+    if(conceptoIndexAux.value != -1){
+      arrayConceptos.value[conceptoIndexAux.value].datosImpuesto = item;
+      arrayConceptos.value[conceptoIndexAux.value].numTrasladados = numTrasladados;
+      arrayConceptos.value[conceptoIndexAux.value].numRetenciones = numRetenciones;
+    }
   }
 }
 
@@ -795,7 +819,7 @@ async function vistaPrevia() {
     }
     if (arrayAux.value.length > 0) {
       datosFactura.value.datosLocales = arrayAux.value;
-    }else{
+    } else {
       datosFactura.value.datosLocales = [];
     }
     datosFactura.value.idEmpresa = appStore.empresa.id;
@@ -808,7 +832,7 @@ async function vistaPrevia() {
         let url = window.URL.createObjectURL(new Blob([response.data]));
         let link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", "VistaPrevia" + ".pdf");
+        link.setAttribute("download", "Vista Previa" + new Date().toLocaleDateString() + ".pdf");
         document.body.appendChild(link);
         link.click();
         loader.value = false;
@@ -829,19 +853,26 @@ function showImpuestoLocales() {
 function getImpLocales(item: any) {
   showImpLocales.value = false;
   arrayAux.value.push(item);
-  // arrayConceptos.value.datosImpLocales = arrayAux.value;
-  // if(item.isTrasladado){
-  // let aux = Number(resultados.value.subTotal) + Number(item.importe);
-  // resultados.value.total = aux.toFixed(2);
-  // arrayConceptos.value.impuestoLocal.push(item)
-  // }else{
-  // let aux = Number(resultados.value.subTotal) - Number(item.importe);
-  // resultados.value.total = aux.toFixed(2);
-  // }
+}
+
+function editarLocal(item: any) {
+  showImpLocales.value = true;
+  editImpLocal.value = item;
+  indexLocal.value = arrayAux.value.indexOf(item);
+}
+
+function quitarLocal(item: any) {
+  let index = arrayAux.value.indexOf(item);
+  arrayAux.value.splice(index, 1);
 }
 
 function getColor(item: any) {
-  if (item == false) return 'warning'
-  else return 'green'
+  if (item == false) return "warning";
+  else return "green";
+}
+
+function actualizarLocal(item: any){
+  showImpLocales.value = false;
+  Object.assign(arrayAux.value[indexLocal.value], item);
 }
 </script>

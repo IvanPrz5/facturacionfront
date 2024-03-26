@@ -25,10 +25,10 @@
               v-model="porcentajeLocal" :rules="[rules.requerido, rules.numero]"></v-text-field>
           </v-col>
           <v-col cols="4" class="pa-1">
-            <v-text-field variant="outlined" density="compact" label="Monto" v-model="montoLocal" :rules="[rules.requerido]"></v-text-field>
+            <v-text-field variant="outlined" density="compact" label="Monto" v-model="montoLocal" :rules="[rules.requerido, rules.numero]"></v-text-field>
           </v-col>
           <v-col class="mb-5">
-            <v-btn @click="aplicarImpLocal" color="success">Aplicar Impuesto</v-btn>
+            <v-btn @click="aplicarImpLocal" color="success">{{ btnText }} Impuesto</v-btn>
           </v-col>
         </v-row>
       </v-form>
@@ -38,13 +38,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import Rules from "@/class/Rules";
 
 const rules = new Rules();
 
-const props = defineProps(["propSubTotal"]);
-const emit = defineEmits(["setImpLocales"]);
+const props = defineProps(["propSubTotal", "editImpLocal"]);
+const emit = defineEmits(["setImpLocales", "actualizarLocal"]);
 
 const impuestoLocalForm: any = ref(null);
 
@@ -53,6 +53,7 @@ let impuestoLocal: any = ref();
 let porcentajeLocal: any = ref();
 let montoLocal: any = ref();
 let isTrasladado: any = ref(true);
+let btnText: any = ref();
 
 let auxMonto = computed(() => {
   if(impuestoLocal.value != null && porcentajeLocal.value != null && props.propSubTotal != null){
@@ -61,11 +62,27 @@ let auxMonto = computed(() => {
   }
 });
 
+onMounted(() => {
+  if(props.editImpLocal != null){
+    impuestoLocal.value = props.editImpLocal.impuesto;
+    porcentajeLocal.value = props.editImpLocal.tasaCuota;
+    montoLocal.value = props.editImpLocal.importe;
+    isTrasladado.value = props.editImpLocal.isTrasladado;
+    btnText.value = "EDITAR";
+  }else{
+    btnText.value = "AGREGAR";
+  }
+});
+
 async function aplicarImpLocal() {
   const { valid } = await impuestoLocalForm.value.validate();
   if(valid){
     let obj = objetoImpuesto();
-    emit("setImpLocales", obj);
+    if(props.editImpLocal != null){
+      emit("actualizarLocal", obj)
+    }else{
+      emit("setImpLocales", obj);
+    }
   }else{
     console.log("Campos Vacios")
   }

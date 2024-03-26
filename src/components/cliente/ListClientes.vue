@@ -7,8 +7,8 @@
       <v-form>
         <v-row no-gutters>
           <v-spacer></v-spacer>
-          <v-col cols="4">
-            <v-text-field variant="solo" density="compact" placeholder="Buscar" v-model="search"
+          <v-col cols="8">
+            <v-text-field variant="outlined" density="compact" placeholder="Buscar" v-model="search"
               append-icon="mdi-magnify"></v-text-field>
           </v-col>
           <v-col cols="12">
