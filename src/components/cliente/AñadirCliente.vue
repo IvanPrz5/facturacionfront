@@ -87,7 +87,7 @@ async function agregarCliente() {
     await axios
       .post(appStore.link + ruta + appStore.empresa.id, obj)
       .then((response) => {
-        emit("clienteAgregado", obj.rfc);
+        emit("clienteAgregado", response.data);
       })
       .catch((e) => {
         console.log("Fatal " + e);

@@ -121,7 +121,7 @@ onMounted(() => {
 
 async function buscarPorNombreOrRfc() {
   await axios
-    .get(appStore.link + "/Clientes/sinEmpresa/" + nombreRfc.value.toUpperCase())
+    .get(appStore.link + "/Clientes/byId/" + nombreRfc.value)
     .then((response) => {
       if (response.data.length > 1) {
         listClientesDialog.value = true;
