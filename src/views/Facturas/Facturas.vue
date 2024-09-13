@@ -137,6 +137,9 @@
                   <v-list-item>
                     <v-btn color="purple" prepend-icon="mdi-qrcode" @click="descargarCvv(item)">CVV</v-btn>
                   </v-list-item>
+                  <v-list-item>
+                    <v-btn color="red" prepend-icon="mdi-email" @click="openMailDialog(item)">MAIL</v-btn>
+                  </v-list-item>
                 </v-list>
               </v-menu>
             </div>
@@ -208,6 +211,9 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="mailDialog" width="500" >
+    <MailForm :data="data"></MailForm>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -215,12 +221,14 @@ import { ref, inject, watch, onMounted } from "vue";
 import { storeApp } from "@/store/app";
 import axios from "axios";
 
-
 import Pagos from "@/components/pagos/Pagos.vue";
 import Facturacion from "../Facturacion/Facturacion.vue";
+import MailForm from "@/components/mail/MailForm.vue";
 
 import VueDatepicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
+
+const mailForm = ref<InstanceType<typeof MailForm> | null>(null);
 
 const appStore = storeApp();
 const emitter: any = inject("emitter");
@@ -284,6 +292,8 @@ let dialogPagos: any = ref(false);
 const startTime = ref({ hours: 0, minutes: 0 });
 const endTime = ref({ hours: 23, minutes: 59 });
 const state: any = ref(false);
+const mailDialog = ref(false);
+const data: any = ref();
 
 onMounted(() => {
   getFacturas(0, true, false);
@@ -665,6 +675,13 @@ async function descargarArchivos(uuid: any, item: any){
     .catch((e) => {
       console.log(e)
     })
+}
+
+function openMailDialog(item: any){
+  // item.datosComprobante.uuid + "/" + appStore.empresa.id, item,
+  mailDialog.value = true;
+  data.value = item;
+  // mailForm.value?.enviarEmail(item);
 }
 
 function verPagos(item: any){

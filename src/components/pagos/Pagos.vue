@@ -16,6 +16,7 @@
               </v-col>
             </v-row>
             <v-divider></v-divider>
+            <v-card-title>Agregar Pago</v-card-title>
             <v-row no-gutters class="mt-4">
               <v-col cols="6" class="pa-1">
                 <v-text-field variant="outlined" density="compact" label="UUID" v-model="pagosClass.uuid"
@@ -149,10 +150,12 @@
     getFormaPago();
     getObjetoImp();
     getDatosPPDByUuid();
-    if (pagosClass.numParcialidad > 1) {
-      listPagos.value?.getFacturasByUuid(props.uuidPagosProp.datosComprobante.uuid, true);
+    // console.log(pagosClass.numParcialidad)
+    // if (pagosClass.numParcialidad > 1) {
+      // console.log(uuidPagosProp.value)
       uuidPagosProp.value = props.uuidPagosProp.datosComprobante.uuid;
-    }
+      listPagos.value?.getFacturasByUuid(uuidPagosProp.value, true);
+    // }
   });
   
   let auxInsoluto = computed(() => {

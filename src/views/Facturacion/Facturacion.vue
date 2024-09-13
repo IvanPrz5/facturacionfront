@@ -271,10 +271,12 @@
             Timbrar Despues
           </v-btn>
           <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
+          <v-btn color="purple" @click="openMailDialog">Enviar Mail</v-btn>
         </div>
       </v-col>
       <v-col cols="6" v-if="facturaTimbrada && editarProp">
-        <v-btn color="indigo" @click="crearConcepto"> Agregar Concepto </v-btn>
+          <v-btn color="indigo" @click="crearConcepto"> Agregar Concepto </v-btn>
+          <v-btn v-if="arrayConceptos.length > 0" class="ml-2" color="purple" @click="openMailDialog">Enviar Mail</v-btn>
       </v-col>
     </v-row>
     <v-dialog v-model="showImpLocales" width="900">
@@ -301,6 +303,9 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="mailDialog" width="500" >
+      <MailForm :data="data"></MailForm>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -314,6 +319,7 @@ import Comprobante from "@/components/comprobante/Comprobante.vue";
 import Concepto from "@/components/concepto/Concepto.vue";
 import Impuesto from "@/components/impuesto/Impuesto.vue";
 import ImpuestoLocal from "@/components/impuesto/ImpuestoLocal.vue";
+import MailForm from "@/components/mail/MailForm.vue";
 
 const cliente = ref<InstanceType<typeof Cliente> | null>(null);
 const comprobante = ref<InstanceType<typeof Comprobante> | null>(null);
@@ -362,6 +368,9 @@ let arrayAux: any = ref([]);
 
 let editImpLocal: any = ref();
 let indexLocal: any = ref(-1);
+
+const mailDialog = ref(false);
+const data: any = ref();
 
 onMounted(() => {
   if (props.propsEditarFactura != undefined) {
@@ -502,6 +511,7 @@ async function generarFactura() {
             descargarArchivos(response.data.mensaje, datosFactura.value);
             facturaTimbrada.value = true;
             emit("cerrarVentanaFacturacion", response.data.mensaje);
+            
           } else {
             mostrarSnack("green", response.data.mensaje, 5000);
             emit("cerrarVentanaFacturacion", response.data.mensaje);
@@ -805,6 +815,8 @@ function cancelarTimbrado() {
   arrayConceptos.value = [];
   facturaTimbrada.value = true;
   editarProp.value = true;
+  // Aqui va el limpiar el campos
+  
 }
 
 async function vistaPrevia() {
@@ -875,4 +887,31 @@ function actualizarLocal(item: any){
   showImpLocales.value = false;
   Object.assign(arrayAux.value[indexLocal.value], item);
 }
+
+async function openMailDialog(){
+
+  let datosComprobante = await getDatosComprobante();
+  let datosCliente = await getDatosCliente();
+  if (datosCliente != null && datosComprobante != null) {
+    mailDialog.value = true;
+
+    datosFactura.value.datosConcepto = arrayConceptos.value;
+    datosFactura.value.idEmpresa = appStore.empresa.id;
+    if (arrayAux.value.length > 0) {
+      datosFactura.value.datosLocales = arrayAux.value;
+    } else {
+      datosFactura.value.datosLocales = [];
+    }
+    if(uuidTimbrado.value){
+      datosFactura.value.datosComprobante.uuid = uuidTimbrado.value;
+    }else{
+      datosFactura.value.datosComprobante.uuid = "XXXXXXXXXX";
+    }
+
+    data.value = datosFactura.value;
+  }else{
+    console.log("DatosVacio")
+  }
+}
+
 </script>
