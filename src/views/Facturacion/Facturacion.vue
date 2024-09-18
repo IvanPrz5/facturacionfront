@@ -271,7 +271,7 @@
             Timbrar Despues
           </v-btn>
           <v-btn color="success" @click="timbrar"> Timbrar </v-btn>
-          <v-btn color="purple" @click="openMailDialog">Enviar Mail</v-btn>
+          <v-btn v-if="isAdmin == 'JEFE'" color="purple" @click="openMailDialog">Enviar Mail</v-btn>
         </div>
       </v-col>
       <v-col cols="6" v-if="facturaTimbrada && editarProp">
@@ -371,8 +371,14 @@ let indexLocal: any = ref(-1);
 
 const mailDialog = ref(false);
 const data: any = ref();
+const isAdmin = ref("");
 
 onMounted(() => {
+
+  if(localStorage.getItem('roleAdmin') != null){
+    isAdmin.value = 'JEFE'
+  }
+
   if (props.propsEditarFactura != undefined) {
     editarComprobanteProp.value = props.propsEditarFactura.datosComprobante;
     editarFacturaProp.value = props.propsEditarFactura.datosCliente;

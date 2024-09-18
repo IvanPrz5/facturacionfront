@@ -137,7 +137,7 @@
                   <v-list-item>
                     <v-btn color="purple" prepend-icon="mdi-qrcode" @click="descargarCvv(item)">CVV</v-btn>
                   </v-list-item>
-                  <v-list-item>
+                  <v-list-item v-if="isAdmin == 'JEFE'">
                     <v-btn color="red" prepend-icon="mdi-email" @click="openMailDialog(item)">MAIL</v-btn>
                   </v-list-item>
                 </v-list>
@@ -295,7 +295,12 @@ const state: any = ref(false);
 const mailDialog = ref(false);
 const data: any = ref();
 
+const isAdmin = ref("");
+
 onMounted(() => {
+  if(localStorage.getItem('roleAdmin') != null){
+    isAdmin.value = 'JEFE'
+  }
   getFacturas(0, true, false);
 });
 

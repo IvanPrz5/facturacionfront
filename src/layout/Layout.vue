@@ -104,6 +104,7 @@ function getRole() {
     }
     if (appStore.usuario.role[i].descripcion == 'JEFE DE AREA') {
       roleJefe.value = true;
+      localStorage.setItem('roleAdmin', 'JEFE')
     }
     if (appStore.usuario.role[i].descripcion == 'AUXILIAR') {
       roleAux.value = true;
